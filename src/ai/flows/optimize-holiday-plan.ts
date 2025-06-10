@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview AI-powered holiday optimization flow for Slovak calendar.
+ * @fileOverview AI-powered holiday optimization flow for European countries.
  *
  * - optimizeHolidayPlan - A function to generate optimized holiday plans.
  * - OptimizeHolidayPlanInput - Input type for the optimizeHolidayPlan function.
@@ -12,7 +12,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const OptimizeHolidayPlanInputSchema = z.object({
-  bankHolidays: z.array(z.string()).describe('Array of Slovak bank holidays in YYYY-MM-DD format.'),
+  countryCode: z.string().describe('The ISO 3166-1 alpha-2 country code (e.g., SK, DE, FR).'),
+  bankHolidays: z.array(z.string()).describe('Array of bank holidays in YYYY-MM-DD format for the specified country.'),
   availableDays: z.number().describe('Number of available holiday days (e.g., 25).'),
   minHolidayDuration: z.number().describe('Minimum duration of a holiday in days (e.g., 5).'),
   maxHolidayDuration: z.number().describe('Maximum duration of a holiday in days (e.g., 10).'),
@@ -40,11 +41,12 @@ const prompt = ai.definePrompt({
   name: 'optimizeHolidayPlanPrompt',
   input: {schema: OptimizeHolidayPlanInputSchema},
   output: {schema: OptimizeHolidayPlanOutputSchema},
-  prompt: `You are an expert holiday planning assistant, specializing in Slovak holidays.
+  prompt: `You are an expert holiday planning assistant, specializing in holidays for European countries.
 
-  Given the following Slovak bank holidays, available holiday days, and desired holiday duration, generate optimized holiday plans that maximize time off while minimizing the number of vacation days used.
+  Given the following bank holidays for country code {{countryCode}}, available holiday days, and desired holiday duration, generate optimized holiday plans that maximize time off while minimizing the number of vacation days used.
 
-  Slovak Bank Holidays: {{bankHolidays}}
+  Country Code: {{countryCode}}
+  Bank Holidays: {{bankHolidays}}
   Available Holiday Days: {{availableDays}}
   Holiday Duration: Minimum {{minHolidayDuration}} days, Maximum {{maxHolidayDuration}} days
 

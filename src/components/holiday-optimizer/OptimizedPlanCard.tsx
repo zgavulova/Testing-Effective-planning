@@ -3,7 +3,7 @@
 import type { OptimizedPlan, BankHoliday } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar as CalendarIcon, CheckCircle, ExternalLink, Info } from 'lucide-react';
+import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, addDays, eachDayOfInterval, isWeekend,isSameDay } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -33,25 +33,24 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
     // For all-day events, Google Calendar expects the end date to be exclusive.
     const dates = `${format(startDate, dateFormat)}/${format(addDays(endDate, 1), dateFormat)}`;
     const details = encodeURIComponent(`Optimized holiday plan. Days used: ${plan.daysUsed}. Total days off: ${plan.totalDaysOff}.\n${plan.description}`);
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=Slovakia`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}`;
   };
 
   const modifiers = {
     bankHoliday: planBankHolidayDates,
     weekend: (date: Date) => isWeekend(date),
     vacationDay: vacationDaysTaken,
-    selectedPeriod: planDays,
+    selectedPeriod: {from: startDate, to: endDate}, // Use range for highlighting
   };
 
   const modifiersClassNames = {
-    bankHoliday: 'bg-accent text-accent-foreground rounded-md',
-    weekend: 'text-muted-foreground opacity-70',
+    bankHoliday: 'bg-accent text-accent-foreground rounded-md font-semibold',
+    weekend: 'text-muted-foreground/70 opacity-80',
     vacationDay: 'bg-primary text-primary-foreground rounded-md font-bold',
     selectedPeriod: 'bg-primary/10 rounded-none',
-    today: 'bg-blue-200 text-blue-800 rounded-full'
+    today: 'bg-blue-200 text-blue-800 rounded-full !font-bold ring-2 ring-primary'
   };
   
-  // Determine number of months to display
   const startMonth = startDate.getMonth();
   const endMonth = endDate.getMonth();
   const startYear = startDate.getFullYear();
@@ -60,78 +59,87 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
   let numberOfMonths = 1;
   if (startYear !== endYear || startMonth !== endMonth) {
     numberOfMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
-    if (numberOfMonths > 3) numberOfMonths = 3; // Limit to 3 months display for very long edge cases
+    if (numberOfMonths > 3) numberOfMonths = 3;
+    if (numberOfMonths <=0) numberOfMonths = 1; // Ensure at least one month
   }
 
-
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-      <CardHeader>
-        <CardTitle className="font-headline text-xl flex items-center">
-          <CalendarIcon className="mr-2 h-6 w-6 text-primary" />
+    <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col rounded-xl overflow-hidden bg-card">
+      <CardHeader className="bg-primary/5 p-5">
+        <CardTitle className="font-headline text-xl lg:text-2xl flex items-center text-primary">
+          <CalendarDays className="mr-2.5 h-7 w-7 text-primary" />
           {format(startDate, 'dd MMM yyyy')} - {format(endDate, 'dd MMM yyyy')}
         </CardTitle>
-        <CardDescription className="flex items-center">
-          <Info className="mr-2 h-4 w-4 text-muted-foreground" />
+        <CardDescription className="flex items-start pt-1 text-sm">
+          <Info className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
           {plan.description}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold mb-2 text-primary">Plan Details:</h4>
-            <p><Badge variant="secondary" className="mr-2">Vacation Days Used:</Badge> {plan.daysUsed}</p>
-            <p><Badge variant="secondary" className="mr-2">Total Days Off:</Badge> {plan.totalDaysOff}</p>
-            <div className="mt-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <CalendarIcon className="mr-2 h-4 w-4" /> View on Calendar
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="range"
-                    defaultMonth={startDate}
-                    selected={planDays}
-                    numberOfMonths={numberOfMonths}
-                    modifiers={modifiers}
-                    modifiersClassNames={modifiersClassNames}
-                    ISOWeek
-                    className="rounded-md border"
-                  />
-                   <div className="p-4 text-sm border-t">
-                    <p><span className="inline-block w-3 h-3 rounded-full bg-primary mr-2"></span> Vacation Day</p>
-                    <p><span className="inline-block w-3 h-3 rounded-full bg-accent mr-2"></span> Bank Holiday</p>
-                    <p><span className="opacity-70">Weekend days are grayed out.</span></p>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
+      <CardContent className="p-5 space-y-5 flex-grow">
+        <div className="grid sm:grid-cols-2 gap-5 items-start">
+          <div className="space-y-2">
+            <h4 className="font-semibold text-primary flex items-center"><Briefcase className="mr-2 h-5 w-5"/>Plan Details:</h4>
+            <p className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Vacation Days Used:</span>
+              <Badge variant="secondary" className="font-bold text-base px-2.5 py-1">{plan.daysUsed}</Badge>
+            </p>
+            <p className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Total Days Off:</span>
+              <Badge variant="default" className="font-bold text-base bg-accent text-accent-foreground px-2.5 py-1">{plan.totalDaysOff}</Badge>
+            </p>
+            
           </div>
-          <div className="p-4 bg-secondary/30 rounded-lg">
-             <h4 className="font-semibold mb-2 text-primary">Key Dates:</h4>
-             <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Start Date: <Badge variant="outline">{format(startDate, 'EEE, dd MMM yyyy')}</Badge></li>
-                <li>End Date: <Badge variant="outline">{format(endDate, 'EEE, dd MMM yyyy')}</Badge></li>
+          <div className="p-4 bg-secondary/50 rounded-lg border border-secondary">
+             <h4 className="font-semibold mb-2 text-primary flex items-center"><TrendingUp className="mr-2 h-5 w-5"/>Key Info:</h4>
+             <ul className="space-y-1.5 text-sm">
+                <li>Start: <Badge variant="outline" className="bg-transparent">{format(startDate, 'EEE, dd MMM')}</Badge></li>
+                <li>End: <Badge variant="outline" className="bg-transparent">{format(endDate, 'EEE, dd MMM')}</Badge></li>
                 {planBankHolidayDates.length > 0 && (
-                  <li>Bank Holidays Included:
-                    <ul className="list-disc list-inside ml-4">
+                  <li>Holidays:
+                    <span className="ml-1">
                     {planBankHolidayDates.map(bh => (
-                      <li key={bh.toISOString()}>{format(bh, 'EEE, dd MMM')}</li>
+                      <Badge key={bh.toISOString()} variant="outline" className="bg-accent/20 text-accent-foreground mr-1 mb-1 border-accent/50">{format(bh, 'dd MMM')}</Badge>
                     ))}
-                    </ul>
+                    </span>
                   </li>
                 )}
              </ul>
           </div>
         </div>
-
+        <div className="mt-auto">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full text-primary border-primary/50 hover:bg-primary/10 hover:text-primary">
+                <CalendarDays className="mr-2 h-4 w-4" /> View on Calendar
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="range"
+                defaultMonth={startDate}
+                selected={{ from: startDate, to: endDate }}
+                fromMonth={startDate}
+                toMonth={endDate}
+                numberOfMonths={numberOfMonths}
+                modifiers={modifiers}
+                modifiersClassNames={modifiersClassNames}
+                ISOWeek
+                className="rounded-md border"
+                showOutsideDays={false}
+              />
+               <div className="p-4 text-xs border-t space-y-1">
+                <p><span className="inline-block w-2.5 h-2.5 rounded-full bg-primary mr-1.5 align-middle"></span> Vacation Day</p>
+                <p><span className="inline-block w-2.5 h-2.5 rounded-full bg-accent mr-1.5 align-middle"></span> Bank Holiday</p>
+                <p><span className="text-muted-foreground/70 opacity-80">Grayed text are weekend days.</span></p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="p-5 bg-primary/5 border-t">
         <Button 
           asChild 
-          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-2.5"
         >
           <a href={generateGoogleCalendarLink()} target="_blank" rel="noopener noreferrer">
             <CheckCircle className="mr-2 h-5 w-5" /> Add to Google Calendar
