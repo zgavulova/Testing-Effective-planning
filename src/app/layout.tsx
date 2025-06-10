@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Effective Holiday planning',
-  description: 'Plan your holidays effectively using European bank holidays and weekends.',
+  title: 'Effective Slovak Holiday planning',
+  description: 'Plan your holidays effectively in Slovakia using bank holidays and weekends.',
 };
 
 export default function RootLayout({
