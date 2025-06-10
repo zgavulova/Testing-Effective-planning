@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -63,7 +64,18 @@ const optimizeHolidayPlanFlow = ai.defineFlow(
     outputSchema: OptimizeHolidayPlanOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const genResponse = await prompt(input);
+    const output = genResponse.output;
+
+    if (!output) {
+      console.error(
+        'AI model failed to generate a valid plan. Full response object:',
+        JSON.stringify(genResponse, null, 2)
+      );
+      throw new Error(
+        'The AI model could not generate holiday plans. This might be due to the complexity of the request, insufficient holiday data, or a temporary issue with the AI service. Please try adjusting your request or try again later.'
+      );
+    }
+    return output;
   }
 );

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -68,10 +69,10 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialCountryCode
   useEffect(() => {
     if (selectedCountry !== initialCountryCode) { // Avoid re-fetching initial data
         loadHolidaysForCountry(selectedCountry);
-    } else if (initialBankHolidays.length === 0 && !isFetchingHolidays) {
-         setError("Could not load initial bank holiday data. Please check your connection or try refreshing the page.");
+    } else if (initialBankHolidays.length === 0 && !isFetchingHolidays && selectedCountry === initialCountryCode) { // Check for initial load specifically
+         setError(`Could not load initial bank holiday data for ${europeanCountries.find(c => c.code === selectedCountry)?.name || selectedCountry}. Please check your connection or try refreshing the page.`);
     }
-  }, [selectedCountry, loadHolidaysForCountry, initialCountryCode, initialBankHolidays.length, isFetchingHolidays]);
+  }, [selectedCountry, loadHolidaysForCountry, initialCountryCode, initialBankHolidays, isFetchingHolidays]);
 
 
   const handleCountryChange = (countryCode: string) => {
@@ -107,7 +108,13 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialCountryCode
       }
     } catch (e) {
       console.error('Error optimizing holiday plan:', e);
-      setError('An error occurred while optimizing holiday plans. Please try again.');
+      let errorMessage = 'An error occurred while optimizing holiday plans. Please try again.';
+      if (e instanceof Error) {
+        errorMessage = e.message;
+      } else if (typeof e === 'string') {
+        errorMessage = e;
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
