@@ -66,22 +66,34 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     } finally {
       setIsFetchingHolidays(false);
     }
-  }, []);
+  }, [SLOVAKIA_COUNTRY_NAME, SLOVAKIA_COUNTRY_CODE]); // Added dependencies that are used inside useCallback
 
   useEffect(() => {
     if (selectedYear !== initialDefaultYear) {
       fetchAndSetHolidays(selectedYear);
     } else {
-      setBankHolidays(initialBankHolidays);
-      setIsFetchingHolidays(false); 
-      if (initialBankHolidays.length === 0 && !isLoading) { 
-        setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
-        setOptimizedPlans([]);
-      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays) {
-        setError(null);
+      // Selected year is the initial default year.
+      setBankHolidays(initialBankHolidays); // Use prop data.
+      setIsFetchingHolidays(false); // We are not fetching if using initial data.
+
+      if (initialBankHolidays.length === 0) {
+        // Only set this error if not currently loading holidays for another year OR optimizing.
+        // This means the initial load for the default year truly resulted in no data.
+        if (!isFetchingHolidays && !isLoading) { 
+             setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
+             setOptimizedPlans([]);
+        }
+      } else { 
+        // We have initial data. If an error is showing, and we're not fetching/loading,
+        // it's likely a stale error from a previous operation on a different year. Clear it.
+        if (error && !isFetchingHolidays && !isLoading) {
+          setError(null);
+        }
       }
     }
   }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error, isFetchingHolidays]);
+  // Keep isLoading, error, isFetchingHolidays in deps for the else branch logic to clear errors correctly,
+  // or to avoid setting error if already loading.
 
   const handleYearChange = (yearValue: string) => {
     const yearNumber = parseInt(yearValue, 10);
@@ -135,7 +147,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     <SidebarProvider defaultOpen={true}>
       <AppSidebar
         year={selectedYear}
-        allBankHolidays={bankHolidays} // Pass all holidays for the two-year span
+        allBankHolidays={bankHolidays} 
         selectedRange={userSelectedRange}
         onRangeSelect={setUserSelectedRange}
         countryName={SLOVAKIA_COUNTRY_NAME}
@@ -244,3 +256,4 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     </SidebarProvider>
   );
 }
+
