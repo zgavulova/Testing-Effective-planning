@@ -5,13 +5,13 @@ import * as React from 'react';
 import type { BankHoliday } from '@/types';
 import { Calendar as ShadcnCalendar } from '@/components/ui/calendar'; // Renamed to avoid conflict
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate, isSameDay } from 'date-fns';
+import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { useDayPicker, useDayRender } from 'react-day-picker'; // Imported hooks
 import { Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants, Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface UserPreferenceCalendarProps {
   year: number;
@@ -35,64 +35,10 @@ export function UserPreferenceCalendar({
   const bankHolidayMap = React.useMemo(() => {
     const map = new Map<string, BankHoliday>();
     allBankHolidays.forEach(holiday => {
-      // Ensure holiday.date is in 'yyyy-MM-dd' format for consistent lookup
-      // Assuming it's already in this format from the API.
       map.set(holiday.date, holiday);
     });
     return map;
   }, [allBankHolidays]);
-
-  // Custom Day component for react-day-picker
-  function CustomDay(props: { date: Date; displayMonth: Date }) {
-    const { date, displayMonth } = props;
-    const dayPicker = useDayPicker();
-    const buttonRef = React.useRef<HTMLButtonElement>(null);
-    const dayRender = useDayRender({ date, displayMonth, buttonRef });
-
-    const dateString = formatDate(date, 'yyyy-MM-dd');
-    const holiday = bankHolidayMap.get(dateString);
-
-    if (!dayRender.isButton && dayRender.divProps) { // Handle non-interactive days
-        return <td {...dayRender.props}><div {...dayRender.divProps} /></td>;
-    }
-    if (!dayRender.isButton && !dayRender.divProps) { // Fallback for days that are neither button nor have divProps
-        return <td {...dayRender.props} />;
-    }
-
-
-    const dayNumber = dayPicker.formatters.formatDay ? dayPicker.formatters.formatDay(date, dayPicker.locale) : formatDate(date, 'd');
-
-
-    if (holiday && dayRender.buttonProps) {
-      return (
-        <td {...dayRender.props}>
-          <Tooltip delayDuration={150}>
-            <TooltipTrigger asChild>
-              <button {...dayRender.buttonProps} ref={buttonRef}>
-                {dayNumber}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="p-1.5 text-xs bg-popover text-popover-foreground border shadow-md rounded-md">
-              <p>{holiday.localName}</p>
-            </TooltipContent>
-          </Tooltip>
-        </td>
-      );
-    }
-    
-    if (dayRender.buttonProps) {
-        return (
-            <td {...dayRender.props}>
-            <button {...dayRender.buttonProps} ref={buttonRef}>
-                {dayNumber}
-            </button>
-            </td>
-        );
-    }
-    // Fallback if not a button and no holiday (should ideally not be reached if isButton check is robust)
-    return <td {...dayRender.props}><div{...dayRender.divProps}>{dayNumber}</div></td>;
-  }
-
 
   const bankHolidayDatesForModifier = allBankHolidays.map(bh => parseISO(bh.date));
 
@@ -106,6 +52,67 @@ export function UserPreferenceCalendar({
     weekend: 'text-muted-foreground/60',
     today: 'bg-secondary text-secondary-foreground rounded-full !font-bold ring-1 ring-ring !w-7 !h-7',
   };
+
+  // Custom Day component for react-day-picker
+  function CustomDay(props: { date: Date; displayMonth: Date }) {
+    const { date, displayMonth } = props;
+    const dayPicker = useDayPicker();
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const dayRender = useDayRender({ date, displayMonth, buttonRef });
+
+    const dateString = formatDate(date, 'yyyy-MM-dd');
+    const holiday = bankHolidayMap.get(dateString);
+    const dayNumber = dayPicker.formatters.formatDay ? dayPicker.formatters.formatDay(date, dayPicker.locale) : formatDate(date, 'd');
+
+    if (!dayRender.isButton && dayRender.divProps) {
+      return <td {...dayRender.props}><div {...dayRender.divProps} /></td>;
+    }
+    if (!dayRender.isButton && !dayRender.divProps) {
+      return <td {...dayRender.props} />;
+    }
+    
+    // This ensures dayRender.buttonProps exists for the rest of the logic
+    if (!dayRender.buttonProps) {
+        return <td {...dayRender.props} />;
+    }
+
+    if (holiday) {
+      // Explicitly merge bankHoliday styles to ensure they apply
+      const buttonClassName = cn(
+        dayRender.buttonProps.className,
+        modifiersClassNames.bankHoliday
+      );
+      return (
+        <td {...dayRender.props}>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  {...dayRender.buttonProps}
+                  className={buttonClassName} // Use the merged className
+                  ref={buttonRef}
+                >
+                  {dayNumber}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="p-1.5 text-xs bg-popover text-popover-foreground border shadow-md rounded-md">
+                <p>{holiday.localName}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </td>
+      );
+    }
+    
+    // Default rendering for non-holiday buttons
+    return (
+        <td {...dayRender.props}>
+        <button {...dayRender.buttonProps} ref={buttonRef}>
+            {dayNumber}
+        </button>
+        </td>
+    );
+  }
   
   const minCalendarDate = startOfMonth(new Date(year, 0, 1));
   const maxCalendarDate = startOfMonth(new Date(year + 1, 11, 1)); 
