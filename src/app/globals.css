@@ -9,34 +9,34 @@ body {
 
 @layer base {
   :root {
-    --background: 220 17% 95%; /* Very Light Cool Gray */
+    --background: 0 0% 100%; /* White */
     --foreground: 222 47% 11%; /* Dark Blue-Gray */
     --card: 0 0% 100%; /* White */
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%; /* Bright Blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 220 14% 90%; /* Light Gray */
-    --secondary-foreground: 217 91% 45%; /* Darker Bright Blue */
-    --muted: 220 10% 85%; /* Muted Gray */
-    --muted-foreground: 215 28% 45%; /* Medium Gray-Blue */
-    --accent: 174 70% 45%; /* Bright Teal */
-    --accent-foreground: 222 47% 11%; /* Dark Blue-Gray on Accent */
+    --primary: 217 91% 68%; /* Lighter Bright Blue */
+    --primary-foreground: 222 47% 11%; /* Dark Blue-Gray for contrast on lighter primary */
+    --secondary: 220 14% 96%; /* Very Light Gray */
+    --secondary-foreground: 220 10% 30%; /* Dark Gray for contrast */
+    --muted: 220 10% 94%; /* Light Muted Gray */
+    --muted-foreground: 220 10% 40%; /* Medium Dark Gray for contrast */
+    --accent: 174 70% 55%; /* Lighter Bright Teal */
+    --accent-foreground: 222 47% 11%; /* Dark Blue-Gray on Accent (maintains contrast) */
     --destructive: 0 84% 60%; /* Standard Red */
     --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 88%; /* Soft Gray Border */
-    --input: 220 13% 92%; /* Light Gray Input */
-    --ring: 217 91% 65%; /* Slightly Lighter Bright Blue for rings */
-    --chart-1: 217 91% 60%; /* Bright Blue */
-    --chart-2: 174 70% 45%; /* Bright Teal */
-    --chart-3: 45 100% 50%; /* Sunny Yellow */
-    --chart-4: 25 85% 60%; /* Bright Orange */
-    --chart-5: 300 75% 65%; /* Bright Pink/Magenta */
+    --border: 220 13% 92%; /* Lighter Soft Gray Border */
+    --input: 220 13% 94%; /* Lighter Gray Input */
+    --ring: 217 91% 70%; /* Lighter Bright Blue for rings */
+    --chart-1: hsl(var(--primary));
+    --chart-2: hsl(var(--accent));
+    --chart-3: 45 100% 60%; /* Lighter Sunny Yellow */
+    --chart-4: 25 85% 70%; /* Lighter Bright Orange */
+    --chart-5: 300 75% 75%; /* Lighter Bright Pink/Magenta */
     --radius: 0.5rem;
     --sidebar-background: 220 20% 97%; /* Lighter gray for sidebar */
     --sidebar-foreground: 222 47% 15%; /* Darker for sidebar text */
-    --sidebar-primary: 217 91% 55%; /* Slightly darker primary for sidebar */
+    --sidebar-primary: 217 91% 55%; /* Slightly darker primary for sidebar (contrasts with new lighter main primary) */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 17% 90%; /* Lighter accent for sidebar (derived from background) */
     --sidebar-accent-foreground: 174 70% 40%; /* Darker Teal for sidebar accent text */
@@ -51,24 +51,24 @@ body {
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 15%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 65%; /* Brighter Blue for dark mode */
+    --primary: 217 91% 68%; /* Lighter Bright Blue (matches light theme's primary HSL) */
     --primary-foreground: 222 47% 11%; /* Dark text on primary */
     --secondary: 222 37% 25%; /* Medium Dark Blue-Gray */
     --secondary-foreground: 210 40% 98%;
     --muted: 222 37% 22%;
     --muted-foreground: 215 30% 70%; /* Lighter Muted Gray-Blue */
-    --accent: 174 70% 55%; /* Brighter Teal for dark mode */
+    --accent: 174 70% 55%; /* Lighter Bright Teal (matches light theme's accent HSL) */
     --accent-foreground: 222 47% 11%; /* Dark text on accent */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 222 37% 30%; /* Medium Dark Blue-Gray Border */
     --input: 222 37% 28%; /* Darker Input */
-    --ring: 217 91% 70%;
-    --chart-1: 217 91% 65%;
-    --chart-2: 174 70% 55%;
-    --chart-3: 45 90% 55%;
-    --chart-4: 25 80% 65%;
-    --chart-5: 300 70% 70%;
+    --ring: 217 91% 70%; /* Lighter ring for dark mode */
+    --chart-1: hsl(var(--primary));
+    --chart-2: hsl(var(--accent));
+    --chart-3: 45 90% 60%; /* Lighter for dark mode */
+    --chart-4: 25 80% 70%; /* Lighter for dark mode */
+    --chart-5: 300 70% 75%; /* Lighter for dark mode */
     --sidebar-background: 222 47% 9%; /* Darker for sidebar */
     --sidebar-foreground: 210 40% 96%; /* Lighter for sidebar text */
     --sidebar-primary: 217 91% 60%;
