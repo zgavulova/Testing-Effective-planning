@@ -10,9 +10,12 @@ import { Wand2, Loader2, AlertTriangle, Info, CalendarDays } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchBankHolidaysForYear } from '@/lib/holidays';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface HolidayOptimizerClientProps {
   initialBankHolidays: BankHoliday[];
+  initialDefaultYear: number;
 }
 
 const AVAILABLE_DAYS = 25;
@@ -21,56 +24,75 @@ const MAX_HOLIDAY_DURATION = 10;
 const SLOVAKIA_COUNTRY_CODE = 'SK';
 const SLOVAKIA_COUNTRY_NAME = 'Slovakia';
 
-export function HolidayOptimizerClient({ initialBankHolidays }: HolidayOptimizerClientProps) {
+const NUM_YEARS_IN_DROPDOWN = 6; // e.g., 2025 to 2030 if initialDefaultYear is 2025
+
+export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear }: HolidayOptimizerClientProps) {
+  const [selectedYear, setSelectedYear] = useState<number>(initialDefaultYear);
   const [bankHolidays, setBankHolidays] = useState<BankHoliday[]>(initialBankHolidays);
   const [optimizedPlans, setOptimizedPlans] = useState<OptimizedPlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingHolidays, setIsFetchingHolidays] = useState(false); // Kept for consistency if initial load fails
+  const [isFetchingHolidays, setIsFetchingHolidays] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const currentYear = new Date().getFullYear();
 
-  const loadHolidaysForSlovakia = useCallback(async () => {
+  const availableYears = Array.from({ length: NUM_YEARS_IN_DROPDOWN }, (_, i) => initialDefaultYear + i);
+
+  const fetchAndSetHolidays = useCallback(async (yearToFetch: number) => {
     setIsFetchingHolidays(true);
     setError(null);
-    setBankHolidays([]);
+    setOptimizedPlans([]);
+    setBankHolidays([]); // Clear current holidays before fetching new ones
+
     try {
-      const holidaysCurrentYear = await fetchBankHolidaysForYear(currentYear, SLOVAKIA_COUNTRY_CODE);
-      const holidaysNextYear = await fetchBankHolidaysForYear(currentYear + 1, SLOVAKIA_COUNTRY_CODE);
-      const allFetchedHolidays = [...holidaysCurrentYear, ...holidaysNextYear];
+      const holidaysCurrent = await fetchBankHolidaysForYear(yearToFetch, SLOVAKIA_COUNTRY_CODE);
+      const holidaysNext = await fetchBankHolidaysForYear(yearToFetch + 1, SLOVAKIA_COUNTRY_CODE);
+      const allFetchedHolidays = [...holidaysCurrent, ...holidaysNext];
+
       if (allFetchedHolidays.length === 0) {
-        setError(`No holiday data found for ${SLOVAKIA_COUNTRY_NAME}. Optimization might not be effective.`);
+        setError(`No holiday data found for ${SLOVAKIA_COUNTRY_NAME} for ${yearToFetch}-${yearToFetch + 1}. Optimization might not be effective.`);
       }
       setBankHolidays(allFetchedHolidays);
     } catch (e) {
-      console.error(`Failed to load holidays for ${SLOVAKIA_COUNTRY_CODE}`, e);
-      setError(`Could not load holiday data for ${SLOVAKIA_COUNTRY_NAME}. Please try again or refresh the page.`);
+      console.error(`Failed to load holidays for ${yearToFetch}-${yearToFetch + 1} (${SLOVAKIA_COUNTRY_CODE})`, e);
+      setError(`Could not load holiday data for ${SLOVAKIA_COUNTRY_NAME} (${yearToFetch}-${yearToFetch + 1}). Please try again.`);
       setBankHolidays([]);
     } finally {
       setIsFetchingHolidays(false);
     }
-  }, [currentYear]);
-  
-  useEffect(() => {
-    // If initialBankHolidays are empty (e.g., initial fetch in page.tsx failed), try to load them.
-    // Or, if they are provided, set them.
-    if (initialBankHolidays.length > 0) {
-      setBankHolidays(initialBankHolidays);
-    } else if (!isFetchingHolidays) {
-        // This case handles if initialBankHolidays was empty from the server,
-        // possibly due to an error during server-side fetch.
-        // We can try fetching again on client or show an error.
-        // For now, let's assume if it's empty, it might be an SSR issue, and rely on handleOptimizeHolidays to check.
-        // Or directly show error if initial data is critical and missing.
-        setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} could not be loaded. Please check your connection or try refreshing the page.`);
-        // Optionally, uncomment to attempt client-side fetch if SSR fails:
-        // loadHolidaysForSlovakia(); 
-    }
-  }, [initialBankHolidays, isFetchingHolidays, loadHolidaysForSlovakia]);
+  }, []);
 
+  useEffect(() => {
+    if (selectedYear !== initialDefaultYear) {
+      fetchAndSetHolidays(selectedYear);
+    } else {
+      // Selected year is the default year, use initial data.
+      setBankHolidays(initialBankHolidays);
+      setIsFetchingHolidays(false); // Ensure fetching is false
+      // Clear plans if they were for a different year, otherwise keep them if they were for initialDefaultYear
+      // For simplicity, we can clear plans when switching back to default year if they are not from initial load.
+      // This is tricky; handleOptimizeHolidays will generate new ones correctly.
+      // Let's ensure error state is correct:
+      if (initialBankHolidays.length === 0 && !isLoading) { 
+        setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
+        setOptimizedPlans([]);
+      } else if (initialBankHolidays.length > 0 && error) {
+        // If we have initial holidays and there was an error from a previous fetch, clear it
+        setError(null);
+      }
+    }
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error]);
+
+
+  const handleYearChange = (yearValue: string) => {
+    const yearNumber = parseInt(yearValue, 10);
+    if (yearNumber !== selectedYear) {
+      setSelectedYear(yearNumber);
+      setOptimizedPlans([]); // Clear plans when year changes
+    }
+  };
 
   const handleOptimizeHolidays = async () => {
     if (bankHolidays.length === 0 && !isFetchingHolidays) {
-        setError(`No holiday data available for ${SLOVAKIA_COUNTRY_NAME}. Cannot optimize. Try refreshing the page.`);
+        setError(`No holiday data available for ${SLOVAKIA_COUNTRY_NAME} for ${selectedYear}-${selectedYear+1}. Cannot optimize. Try a different year or refresh.`);
         return;
     }
     setIsLoading(true);
@@ -92,7 +114,7 @@ export function HolidayOptimizerClient({ initialBankHolidays }: HolidayOptimizer
       if (result && result.optimizedPlans && result.optimizedPlans.length > 0) {
         setOptimizedPlans(result.optimizedPlans);
       } else {
-        setError('No optimized plans could be generated. The AI might not have found suitable options or there might be no holidays for Slovakia.');
+        setError(`No optimized plans could be generated for ${selectedYear}-${selectedYear+1}. The AI might not have found suitable options, or there might be insufficient holiday data for Slovakia in this period.`);
       }
     } catch (e) {
       console.error('Error optimizing holiday plan:', e);
@@ -117,11 +139,30 @@ export function HolidayOptimizerClient({ initialBankHolidays }: HolidayOptimizer
             Plan Your Slovak Getaway
           </CardTitle>
           <CardDescription className="text-base text-muted-foreground pt-2">
-            Let our AI assistant find the best holiday periods for you in Slovakia. We maximize your time off by leveraging bank holidays and weekends.
+            Let our AI assistant find the best holiday periods for you in Slovakia for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
             You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll plan for holidays between <strong>{MIN_HOLIDAY_DURATION}</strong> and <strong>{MAX_HOLIDAY_DURATION}</strong> days long.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-6 space-y-6">
+          <div>
+            <Label htmlFor="year-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Base Year for Planning</Label>
+            <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
+              <SelectTrigger id="year-select" className="w-full md:w-72">
+                <SelectValue placeholder="Select year..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year} (Plans will cover {year} & {year + 1})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
+            </p>
+          </div>
+
           <div className="flex justify-end">
             <Button
               onClick={handleOptimizeHolidays}
@@ -134,15 +175,15 @@ export function HolidayOptimizerClient({ initialBankHolidays }: HolidayOptimizer
               ) : (
                 <Wand2 className="mr-2 h-6 w-6" />
               )}
-              {isLoading ? 'Optimizing...' : 'Optimize My Slovak Holidays'}
+              {isLoading ? 'Optimizing...' : `Optimize Holidays for ${selectedYear}`}
             </Button>
           </div>
-           {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && !initialBankHolidays.length)) && (
+           {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
              <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary">
                 {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin text-primary"/> : <AlertTriangle className="h-5 w-5" />}
                <AlertTitle className={isFetchingHolidays ? "text-primary" : ""}>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
                <AlertDescription>
-                 {isFetchingHolidays ? `Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME}...` : `Bank holiday data could not be loaded for ${SLOVAKIA_COUNTRY_NAME}. Optimization is disabled until data is available.`}
+                 {isFetchingHolidays ? `Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME} ${selectedYear}-${selectedYear+1}...` : `Bank holiday data for ${selectedYear}-${selectedYear+1} could not be loaded. Optimization is disabled until data is available.`}
                </AlertDescription>
              </Alert>
            )}
@@ -162,8 +203,8 @@ export function HolidayOptimizerClient({ initialBankHolidays }: HolidayOptimizer
            <Info className="h-5 w-5 text-primary" />
            <AlertTitle className="text-primary font-semibold">Ready to Plan for Slovakia?</AlertTitle>
            <AlertDescription>
-             Click the "Optimize My Slovak Holidays" button to generate your personalized holiday plans. 
-             The AI will consider bank holidays for the current ({currentYear}) and next ({currentYear + 1}) year.
+             Click the "Optimize Holidays for {selectedYear}" button to generate your personalized holiday plans. 
+             The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
            </AlertDescription>
          </Alert>
       )}
@@ -171,7 +212,7 @@ export function HolidayOptimizerClient({ initialBankHolidays }: HolidayOptimizer
       {optimizedPlans.length > 0 && (
         <div>
           <h2 className="text-3xl font-bold font-headline mb-8 text-center text-primary">
-            Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME}
+            Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {optimizedPlans.map((plan, index) => (
