@@ -45,12 +45,13 @@ export function UserPreferenceCalendar({
   const modifiers = {
     bankHoliday: bankHolidayDatesForModifier,
     weekend: (date: Date) => isWeekend(date),
+    // "today" is a default modifier in react-day-picker
   };
 
   const modifiersClassNames = {
-    bankHoliday: 'bg-accent text-accent-foreground rounded-full font-semibold !w-7 !h-7',
+    bankHoliday: 'bg-accent text-accent-foreground font-semibold', // Simplified
     weekend: 'text-muted-foreground/60',
-    today: 'bg-secondary text-secondary-foreground rounded-full !font-bold ring-1 ring-ring !w-7 !h-7',
+    today: 'bg-secondary text-secondary-foreground !font-bold ring-1 ring-ring', // Simplified, !font-bold and ring kept for emphasis
   };
 
   // Custom Day component for react-day-picker
@@ -71,17 +72,15 @@ export function UserPreferenceCalendar({
       return <td {...dayRender.props} />;
     }
     
-    // This ensures dayRender.buttonProps exists for the rest of the logic
     if (!dayRender.buttonProps) {
         return <td {...dayRender.props} />;
     }
 
+    let buttonClassName = dayRender.buttonProps.className;
+
     if (holiday) {
-      // Explicitly merge bankHoliday styles to ensure they apply
-      const buttonClassName = cn(
-        dayRender.buttonProps.className,
-        modifiersClassNames.bankHoliday
-      );
+      // Apply bank holiday specific styling on top of existing button classes
+      buttonClassName = cn(buttonClassName, modifiersClassNames.bankHoliday);
       return (
         <td {...dayRender.props}>
           <TooltipProvider delayDuration={150}>
@@ -89,7 +88,7 @@ export function UserPreferenceCalendar({
               <TooltipTrigger asChild>
                 <button
                   {...dayRender.buttonProps}
-                  className={buttonClassName} // Use the merged className
+                  className={buttonClassName}
                   ref={buttonRef}
                 >
                   {dayNumber}
@@ -104,10 +103,10 @@ export function UserPreferenceCalendar({
       );
     }
     
-    // Default rendering for non-holiday buttons
+    // Default rendering for non-holiday buttons (includes "today", "selected", etc. via dayRender.buttonProps.className)
     return (
         <td {...dayRender.props}>
-        <button {...dayRender.buttonProps} ref={buttonRef}>
+        <button {...dayRender.buttonProps} className={buttonClassName} ref={buttonRef}>
             {dayNumber}
         </button>
         </td>
@@ -180,9 +179,9 @@ export function UserPreferenceCalendar({
                 month: "space-y-1 min-w-0 w-full bg-card p-1.5 rounded-md shadow-sm", 
                 caption_label: "text-xs font-medium text-primary text-center",
                 caption: "flex justify-center items-center relative h-6 mb-1",
-                nav_button: "absolute top-0 h-6 w-6",
-                nav_button_previous: "left-0",
-                nav_button_next: "right-0",
+                nav_button: "absolute top-0 h-6 w-6", // Hidden by IconLeft/Right to null
+                nav_button_previous: "left-0", // Hidden by IconLeft/Right to null
+                nav_button_next: "right-0", // Hidden by IconLeft/Right to null
                 head_row: "flex justify-around mb-1",
                 head_cell: "text-muted-foreground rounded-md w-7 h-7 font-normal text-[0.7rem] flex items-center justify-center",
                 row: "flex w-full mt-1 justify-around",
@@ -191,14 +190,14 @@ export function UserPreferenceCalendar({
                     buttonVariants({ variant: "ghost" }),
                     "w-7 h-7 p-0 font-normal aria-selected:opacity-100" 
                 ),
-                day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 rounded-full",
-                day_today: "bg-secondary text-secondary-foreground rounded-full",
+                day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 rounded-full", // Primary color for selected days
+                day_today: "bg-secondary text-secondary-foreground rounded-full", // Secondary color for today
                 day_outside: "day-outside text-muted-foreground opacity-30 aria-selected:bg-primary/10 aria-selected:text-primary-foreground/80",
                 day_disabled: "text-muted-foreground opacity-40",
-                day_range_middle: "aria-selected:bg-primary/30 aria-selected:text-primary-foreground rounded-none",
+                day_range_middle: "aria-selected:bg-primary/30 aria-selected:text-primary-foreground rounded-none", // Primary color for range
             }}
             components={{
-              Day: CustomDay, // Use our custom Day component
+              Day: CustomDay,
               IconLeft: () => null, 
               IconRight: () => null,
             }}
