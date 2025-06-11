@@ -9,6 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AppSidebarProps {
   year: number;
+  availableYears: number[];
+  onYearChange: (yearValue: string) => void;
   allBankHolidays: BankHoliday[];
   selectedRange: DateRange | undefined;
   onRangeSelect: (range: DateRange | undefined) => void;
@@ -17,6 +19,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({
   year,
+  availableYears,
+  onYearChange,
   allBankHolidays,
   selectedRange,
   onRangeSelect,
@@ -27,7 +31,7 @@ export function AppSidebar({
       side="left" 
       collapsible="icon" 
       className="border-r shadow-lg"
-      style={{ "--sidebar-width": "26rem", "--sidebar-width-icon": "3.5rem" } as React.CSSProperties} // Adjusted width for 3 calendars
+      style={{ "--sidebar-width": "26rem", "--sidebar-width-icon": "3.5rem" } as React.CSSProperties}
     >
       <SidebarHeader className="p-3 border-b">
         <div className="text-base font-semibold group-data-[collapsible=icon]:hidden">Calendar View</div>
@@ -40,6 +44,8 @@ export function AppSidebar({
           <div className="p-2">
             <UserPreferenceCalendar
               year={year}
+              availableYears={availableYears}
+              onYearChange={onYearChange}
               allBankHolidays={allBankHolidays}
               selectedRange={selectedRange}
               onRangeSelect={onRangeSelect}

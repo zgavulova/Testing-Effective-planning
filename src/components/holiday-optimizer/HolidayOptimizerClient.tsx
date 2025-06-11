@@ -29,7 +29,7 @@ const AVAILABLE_DAYS = 25;
 const SLOVAKIA_COUNTRY_CODE = 'SK';
 const SLOVAKIA_COUNTRY_NAME = 'Slovakia';
 
-const NUM_YEARS_IN_DROPDOWN = 3; // Show current year + next 2 years
+const NUM_YEARS_IN_DROPDOWN = 6; // Show current year + next 5 years
 const DURATION_OPTIONS = [3, 5, 7, 10, 14];
 const DEFAULT_DURATION = 5;
 
@@ -90,6 +90,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     if (yearNumber !== selectedYear) {
       setSelectedYear(yearNumber);
       setOptimizedPlans([]); 
+      setUserSelectedRange(undefined); // Reset date range selection when year changes
     }
   };
 
@@ -145,6 +146,8 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     <SidebarProvider defaultOpen={true}>
       <AppSidebar
         year={selectedYear}
+        availableYears={availableYears}
+        onYearChange={handleYearChange}
         allBankHolidays={bankHolidays} 
         selectedRange={userSelectedRange}
         onRangeSelect={setUserSelectedRange}
@@ -170,7 +173,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="year-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Base Year for Planning</Label>
-                      <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
+                      <Select onValueChange={handleYearChange} value={String(selectedYear)}>
                         <SelectTrigger id="year-select" className="w-full">
                           <SelectValue placeholder="Select year..." />
                         </SelectTrigger>

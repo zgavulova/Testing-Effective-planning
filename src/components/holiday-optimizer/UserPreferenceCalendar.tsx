@@ -7,14 +7,18 @@ import { Calendar as ShadcnCalendar } from '@/components/ui/calendar'; // Rename
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate, getYear as getFullYear, getMonth } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
-import { useDayPicker, useDayRender } from 'react-day-picker'; // Imported hooks
-import { Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useDayPicker, useDayRender } from 'react-day-picker';
+import { Lightbulb, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'; // Added CalendarIcon
 import { cn } from '@/lib/utils';
 import { buttonVariants, Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface UserPreferenceCalendarProps {
   year: number;
+  availableYears: number[];
+  onYearChange: (yearValue: string) => void;
   allBankHolidays: BankHoliday[];
   selectedRange: DateRange | undefined;
   onRangeSelect: (range: DateRange | undefined) => void;
@@ -22,6 +26,8 @@ interface UserPreferenceCalendarProps {
 
 export function UserPreferenceCalendar({
   year,
+  availableYears,
+  onYearChange,
   allBankHolidays,
   selectedRange,
   onRangeSelect,
@@ -30,10 +36,8 @@ export function UserPreferenceCalendar({
     const today = new Date();
     const actualCurrentYear = getFullYear(today);
     if (planningYear === actualCurrentYear) {
-      // Start from the current month of the current year
       return startOfMonth(new Date(planningYear, getMonth(today), 1));
     }
-    // Default to January of the planning year
     return startOfMonth(new Date(planningYear, 0, 1));
   };
 
@@ -64,7 +68,6 @@ export function UserPreferenceCalendar({
     today: 'bg-secondary text-secondary-foreground !font-bold ring-1 ring-ring',
   };
 
-
   function CustomDay(props: { date: Date; displayMonth: Date }) {
     const { date, displayMonth } = props;
     const dayPicker = useDayPicker();
@@ -86,7 +89,6 @@ export function UserPreferenceCalendar({
     let finalButtonClassName = dayRender.buttonProps.className;
   
     if (holiday) {
-      // Ensure holiday style is applied correctly
       finalButtonClassName = cn(finalButtonClassName, modifiersClassNames.bankHoliday);
       return (
         <TooltipProvider delayDuration={150}>
@@ -108,7 +110,6 @@ export function UserPreferenceCalendar({
       );
     }
   
-    // Default rendering for non-holiday buttons
     return (
       <button
         {...dayRender.buttonProps}
@@ -139,11 +140,11 @@ export function UserPreferenceCalendar({
   return (
     <Card className="bg-card shadow-lg rounded-xl overflow-hidden w-full">
       <CardHeader className="bg-primary/5 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center">
-            <Lightbulb className="mr-2 h-6 w-6 text-primary" />
+            <CalendarIcon className="mr-2 h-6 w-6 text-primary" /> {/* Changed Icon */}
             <CardTitle className="font-headline text-lg text-primary">
-              Year Overview for {year}
+              Calendar Overview
             </CardTitle>
           </div>
           <div className="flex items-center gap-1">
@@ -157,8 +158,23 @@ export function UserPreferenceCalendar({
             </Button>
           </div>
         </div>
+        <div className="flex items-center gap-2 mb-1">
+          <Label htmlFor="sidebar-year-select" className="text-sm font-medium text-muted-foreground whitespace-nowrap">View Year:</Label>
+          <Select onValueChange={onYearChange} value={String(year)}>
+            <SelectTrigger id="sidebar-year-select" className="h-9 w-full text-sm">
+              <SelectValue placeholder="Select year..." />
+            </SelectTrigger>      
+            <SelectContent>
+              {availableYears.map(y => (
+                <SelectItem key={y} value={String(y)} className="text-sm">
+                  {y} (Covers {y} & {y + 1})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <CardDescription className="text-xs text-muted-foreground pt-1">
-           {formatDate(displayedMonth, 'MMM yyyy')} - {formatDate(addMonths(displayedMonth, 2), 'MMM yyyy')}. Click to select a date range.
+           Displaying: {formatDate(displayedMonth, 'MMM yyyy')} - {formatDate(addMonths(displayedMonth, 2), 'MMM yyyy')}. Bank holidays for {year} & {year+1} are highlighted.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 md:p-3">
@@ -180,7 +196,7 @@ export function UserPreferenceCalendar({
             modifiers={modifiers}
             modifiersClassNames={modifiersClassNames}
             className="w-full"
-            weekStartsOn={1} // Start week on Monday
+            weekStartsOn={1} 
             classNames={{
                 root: "w-full pb-1",
                 months: "flex flex-col gap-y-3", 
@@ -215,4 +231,3 @@ export function UserPreferenceCalendar({
     </Card>
   );
 }
-
