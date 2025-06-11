@@ -1,13 +1,15 @@
+
 'use client';
 
 import type { OptimizedPlan, BankHoliday } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp } from 'lucide-react';
+import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp, Share2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, addDays, eachDayOfInterval, isWeekend,isSameDay } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface OptimizedPlanCardProps {
   plan: OptimizedPlan;
@@ -15,6 +17,7 @@ interface OptimizedPlanCardProps {
 }
 
 export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardProps) {
+  const { toast } = useToast();
   const startDate = parseISO(plan.startDate);
   const endDate = parseISO(plan.endDate);
   const planDays = eachDayOfInterval({ start: startDate, end: endDate });
@@ -34,6 +37,29 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
     const dates = `${format(startDate, dateFormat)}/${format(addDays(endDate, 1), dateFormat)}`;
     const details = encodeURIComponent(`Optimized holiday plan. Days used: ${plan.daysUsed}. Total days off: ${plan.totalDaysOff}.\n${plan.description}`);
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}`;
+  };
+
+  const handleSharePlan = async () => {
+    const planSummary = `Check out this holiday plan!
+Description: ${plan.description}
+Dates: ${format(startDate, 'dd MMM yyyy')} - ${format(endDate, 'dd MMM yyyy')}
+Vacation Days Used: ${plan.daysUsed}
+Total Days Off: ${plan.totalDaysOff}`;
+
+    try {
+      await navigator.clipboard.writeText(planSummary);
+      toast({
+        title: "Plan Copied!",
+        description: "The holiday plan details have been copied to your clipboard.",
+      });
+    } catch (err) {
+      console.error('Failed to copy plan: ', err);
+      toast({
+        title: "Error",
+        description: "Could not copy the plan to clipboard. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const modifiers = {
@@ -136,13 +162,20 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
           </Popover>
         </div>
       </CardContent>
-      <CardFooter className="p-5 bg-primary/5 border-t">
+      <CardFooter className="p-5 bg-primary/5 border-t space-x-3">
+        <Button 
+          onClick={handleSharePlan}
+          variant="outline"
+          className="w-full text-primary border-primary/50 hover:bg-primary/10 hover:text-primary text-base py-2.5"
+        >
+          <Share2 className="mr-2 h-5 w-5" /> Share Plan
+        </Button>
         <Button 
           asChild 
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-2.5"
         >
           <a href={generateGoogleCalendarLink()} target="_blank" rel="noopener noreferrer">
-            <CheckCircle className="mr-2 h-5 w-5" /> Add to Google Calendar
+            <CheckCircle className="mr-2 h-5 w-5" /> Add to Calendar
             <ExternalLink className="ml-auto h-4 w-4 opacity-70" />
           </a>
         </Button>
@@ -150,3 +183,4 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
     </Card>
   );
 }
+
