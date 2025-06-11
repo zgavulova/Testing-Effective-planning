@@ -4,13 +4,15 @@ import { fetchBankHolidaysForYear } from '@/lib/holidays';
 import type { BankHoliday } from '@/types';
 
 const SLOVAKIA_COUNTRY_CODE = 'SK';
-const DEFAULT_OPTIMIZER_YEAR = 2025;
+// Use the current year as the default for optimization and initial display
+const DEFAULT_OPTIMIZER_YEAR = new Date().getFullYear();
 
 export default async function HomePage() {
   let initialHolidays: BankHoliday[] = [];
   const currentDisplayYear = new Date().getFullYear(); // For footer
 
   try {
+    // Fetch holidays for the default optimizer year and the year after
     const holidaysSelectedYear = await fetchBankHolidaysForYear(DEFAULT_OPTIMIZER_YEAR, SLOVAKIA_COUNTRY_CODE);
     const holidaysNextSelectedYear = await fetchBankHolidaysForYear(DEFAULT_OPTIMIZER_YEAR + 1, SLOVAKIA_COUNTRY_CODE);
     initialHolidays = [...holidaysSelectedYear, ...holidaysNextSelectedYear];
@@ -27,3 +29,4 @@ export default async function HomePage() {
     />
   );
 }
+
