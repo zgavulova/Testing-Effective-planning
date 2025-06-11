@@ -26,7 +26,7 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
     .map(bh => parseISO(bh.date))
     .filter(bhDate => planDays.some(planDay => isSameDay(planDay, bhDate)));
 
-  const vacationDaysTaken = planDays.filter(day => 
+  const vacationDaysTaken = planDays.filter(day =>
     !isWeekend(day) && !planBankHolidayDates.some(bhDate => isSameDay(day, bhDate))
   );
 
@@ -110,12 +110,12 @@ Total Days Off: ${plan.totalDaysOff}`;
     selectedPeriod: 'bg-primary/10 rounded-none',
     today: 'bg-blue-200 text-blue-800 rounded-full !font-bold ring-2 ring-primary'
   };
-  
+
   const startMonth = startDate.getMonth();
   const endMonth = endDate.getMonth();
   const startYear = startDate.getFullYear();
   const endYear = endDate.getFullYear();
-  
+
   let numberOfMonths = 1;
   if (startYear !== endYear || startMonth !== endMonth) {
     numberOfMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
@@ -139,15 +139,15 @@ Total Days Off: ${plan.totalDaysOff}`;
         <div className="grid sm:grid-cols-2 gap-5 items-start">
           <div className="space-y-2">
             <h4 className="font-semibold text-primary flex items-center"><Briefcase className="mr-2 h-5 w-5"/>Plan Details:</h4>
-            <p className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Vacation Days Used:</span>
               <Badge variant="secondary" className="font-bold text-base px-2.5 py-1">{plan.daysUsed}</Badge>
-            </p>
-            <p className="flex items-center justify-between text-sm">
+            </div>
+            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total Days Off:</span>
               <Badge variant="default" className="font-bold text-base bg-accent text-accent-foreground px-2.5 py-1">{plan.totalDaysOff}</Badge>
-            </p>
-            
+            </div>
+
           </div>
           <div className="p-4 bg-secondary/50 rounded-lg border border-secondary">
              <h4 className="font-semibold mb-2 text-primary flex items-center"><TrendingUp className="mr-2 h-5 w-5"/>Key Info:</h4>
@@ -197,15 +197,15 @@ Total Days Off: ${plan.totalDaysOff}`;
         </div>
       </CardContent>
       <CardFooter className="p-5 bg-primary/5 border-t space-x-3">
-        <Button 
+        <Button
           onClick={handleSharePlan}
           variant="outline"
           className="w-full text-primary border-primary/50 hover:bg-primary/10 hover:text-primary text-base py-2.5"
         >
           <Share2 className="mr-2 h-5 w-5" /> Share Plan
         </Button>
-        <Button 
-          asChild 
+        <Button
+          asChild
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-2.5"
         >
           <a href={generateGoogleCalendarLink()} target="_blank" rel="noopener noreferrer">
