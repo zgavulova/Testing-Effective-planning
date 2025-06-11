@@ -86,7 +86,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
         }
       }
     }
-  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error, isFetchingHolidays]);
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays]);
 
 
   const handleYearChange = (yearValue: string) => {
@@ -155,7 +155,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                 <CardHeader className="bg-primary/10 p-6">
                   <CardTitle className="font-headline text-3xl text-primary flex items-center">
                     <CalendarDays className="mr-3 h-8 w-8" />
-                    Plan Your Slovak Getaway
+                    Plan Your Getaway
                   </CardTitle>
                   <CardDescription className="text-base text-muted-foreground pt-2">
                     Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
