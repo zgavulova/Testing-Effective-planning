@@ -46,19 +46,53 @@ Dates: ${format(startDate, 'dd MMM yyyy')} - ${format(endDate, 'dd MMM yyyy')}
 Vacation Days Used: ${plan.daysUsed}
 Total Days Off: ${plan.totalDaysOff}`;
 
-    try {
-      await navigator.clipboard.writeText(planSummary);
-      toast({
-        title: "Plan Copied!",
-        description: "The holiday plan details have been copied to your clipboard.",
-      });
-    } catch (err) {
-      console.error('Failed to copy plan: ', err);
-      toast({
-        title: "Error",
-        description: "Could not copy the plan to clipboard. Please try again.",
-        variant: "destructive",
-      });
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Slovak Holiday Plan',
+          text: planSummary,
+          // url: window.location.href, // Optional: if you want to share a link to the app
+        });
+        toast({
+          title: "Plan Shared!",
+          description: "The holiday plan was successfully shared.",
+        });
+      } catch (error) {
+        // This catch block is usually for actual errors or if the user explicitly cancels (AbortError).
+        // Some browsers might not throw AbortError for user cancellation, so behavior can vary.
+        // We'll attempt to copy to clipboard as a fallback if sharing doesn't complete.
+        console.warn('Web Share API failed or was cancelled, attempting clipboard copy:', error);
+        try {
+          await navigator.clipboard.writeText(planSummary);
+          toast({
+            title: "Sharing Incomplete, Plan Copied!",
+            description: "Could not share directly, but the plan is copied to your clipboard.",
+          });
+        } catch (copyError) {
+          console.error('Failed to copy plan after sharing failed: ', copyError);
+          toast({
+            title: "Error",
+            description: "Could not share or copy the plan. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    } else {
+      // navigator.share is not available, fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(planSummary);
+        toast({
+          title: "Plan Copied!",
+          description: "Sharing via apps isn't available in your browser. Plan copied to clipboard.",
+        });
+      } catch (err) {
+        console.error('Failed to copy plan: ', err);
+        toast({
+          title: "Error",
+          description: "Could not copy the plan to clipboard. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
