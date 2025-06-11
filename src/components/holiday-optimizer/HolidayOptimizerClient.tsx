@@ -26,15 +26,16 @@ interface HolidayOptimizerClientProps {
 }
 
 const AVAILABLE_DAYS = 25;
-const MIN_HOLIDAY_DURATION = 5;
-const MAX_HOLIDAY_DURATION = 10;
 const SLOVAKIA_COUNTRY_CODE = 'SK';
 const SLOVAKIA_COUNTRY_NAME = 'Slovakia';
 
 const NUM_YEARS_IN_DROPDOWN = 3; // Show current year + next 2 years
+const DURATION_OPTIONS = [3, 5, 7, 10, 14];
+const DEFAULT_DURATION = 5;
 
 export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear, currentDisplayYear }: HolidayOptimizerClientProps) {
   const [selectedYear, setSelectedYear] = useState<number>(initialDefaultYear);
+  const [selectedHolidayDuration, setSelectedHolidayDuration] = useState<number>(DEFAULT_DURATION);
   const [bankHolidays, setBankHolidays] = useState<BankHoliday[]>(initialBankHolidays);
   const [optimizedPlans, setOptimizedPlans] = useState<OptimizedPlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +43,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
   const [error, setError] = useState<string | null>(null);
   const [userSelectedRange, setUserSelectedRange] = useState<DateRange | undefined>();
 
-  const availableYears = Array.from({ length: NUM_YEARS_IN_DROPDOWN }, (_, i) => initialDefaultYear + i);
+  const availableYears = Array.from({ length: NUM_YEARS_IN_DROPDOWN }, (_, i) => new Date().getFullYear() + i);
 
   const fetchAndSetHolidays = useCallback(async (yearToFetch: number) => {
     setIsFetchingHolidays(true);
@@ -68,23 +69,21 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     }
   }, []); 
 
- useEffect(() => {
-    if (selectedYear !== initialDefaultYear) {
-      fetchAndSetHolidays(selectedYear);
+  useEffect(() => {
+    if (selectedYear !== initialDefaultYear || initialBankHolidays.length === 0) {
+        fetchAndSetHolidays(selectedYear);
     } else {
-      // We are on the initial default year
-      setBankHolidays(initialBankHolidays);
-      setIsFetchingHolidays(false); 
-
-      if (initialBankHolidays.length === 0 && !isFetchingHolidays && !isLoading) { 
-          setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
-          setOptimizedPlans([]); 
-      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays && !isLoading && selectedYear === initialDefaultYear) {
-        // If initial holidays are loaded and there was a previous error FOR THIS YEAR, clear it.
-        setError(null);
-      }
+        setBankHolidays(initialBankHolidays);
+        setIsFetchingHolidays(false);
+        if (initialBankHolidays.length === 0 && !isFetchingHolidays && !isLoading) {
+            setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
+            setOptimizedPlans([]);
+        } else if (initialBankHolidays.length > 0 && error && selectedYear === initialDefaultYear && !isFetchingHolidays && !isLoading) {
+             // Clear error if initial holidays are loaded for the default year and there was a previous error for this year.
+            setError(null);
+        }
     }
-  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error, isFetchingHolidays]);
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays]);
 
 
   const handleYearChange = (yearValue: string) => {
@@ -93,6 +92,11 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       setSelectedYear(yearNumber);
       setOptimizedPlans([]); 
     }
+  };
+
+  const handleDurationChange = (durationValue: string) => {
+    setSelectedHolidayDuration(parseInt(durationValue, 10));
+    setOptimizedPlans([]); // Clear previous plans when duration changes
   };
 
   const handleOptimizeHolidays = async () => {
@@ -110,8 +114,8 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       countryCode: SLOVAKIA_COUNTRY_CODE,
       bankHolidays: bankHolidayDates,
       availableDays: AVAILABLE_DAYS,
-      minHolidayDuration: MIN_HOLIDAY_DURATION,
-      maxHolidayDuration: MAX_HOLIDAY_DURATION,
+      minHolidayDuration: selectedHolidayDuration,
+      maxHolidayDuration: selectedHolidayDuration,
     };
 
     try {
@@ -119,7 +123,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       if (result && result.optimizedPlans && result.optimizedPlans.length > 0) {
         setOptimizedPlans(result.optimizedPlans);
       } else {
-        setError(`No optimized plans could be generated for ${selectedYear}-${selectedYear+1}. The AI might not have found suitable options, or there might be insufficient holiday data for Slovakia in this period.`);
+        setError(`No optimized plans could be generated for ${selectedYear}-${selectedYear+1} with a duration of ${selectedHolidayDuration} days. The AI might not have found suitable options, or there might be insufficient holiday data for Slovakia in this period.`);
       }
     } catch (e) {
       console.error('Error optimizing holiday plan:', e);
@@ -157,27 +161,47 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                   </CardTitle>
                   <CardDescription className="text-base text-muted-foreground pt-2">
                     Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
-                    You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll plan for holidays between <strong>{MIN_HOLIDAY_DURATION}</strong> and <strong>{MAX_HOLIDAY_DURATION}</strong> days long.
+                    You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll help you plan holidays that are <strong>{selectedHolidayDuration}</strong> days long.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
-                  <div>
-                    <Label htmlFor="year-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Base Year for Planning</Label>
-                    <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
-                      <SelectTrigger id="year-select" className="w-full md:w-72">
-                        <SelectValue placeholder="Select year..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableYears.map(year => (
-                          <SelectItem key={year} value={String(year)}>
-                            {year} (Plans will cover {year} & {year + 1})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
-                    </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="year-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Base Year for Planning</Label>
+                      <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
+                        <SelectTrigger id="year-select" className="w-full">
+                          <SelectValue placeholder="Select year..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableYears.map(year => (
+                            <SelectItem key={year} value={String(year)}>
+                              {year} (Plans will cover {year} & {year + 1})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="duration-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Holiday Duration</Label>
+                      <Select onValueChange={handleDurationChange} defaultValue={String(DEFAULT_DURATION)}>
+                        <SelectTrigger id="duration-select" className="w-full">
+                          <SelectValue placeholder="Select duration..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DURATION_OPTIONS.map(duration => (
+                            <SelectItem key={duration} value={String(duration)}>
+                              {duration} days
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                       <p className="text-xs text-muted-foreground mt-1">
+                        Desired length of your holiday break.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex justify-end">
@@ -220,7 +244,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                   <Info className="h-5 w-5 text-primary" />
                   <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
-                    Click the "Plan Holidays for {selectedYear}" button to generate your personalized holiday plans. 
+                    Select your desired year and holiday duration, then click the "Plan Holidays for {selectedYear}" button to generate your personalized holiday plans. 
                     The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
                   </AlertDescription>
                 </Alert>
