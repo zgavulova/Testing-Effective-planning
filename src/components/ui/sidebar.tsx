@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -224,12 +225,15 @@ const Sidebar = React.forwardRef<
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
+            "duration-200 relative h-svh bg-transparent transition-[width] ease-linear",
+             // Default width for expanded state (relevant for 'inset' variant's placeholder)
+            "w-[var(--sidebar-width)]",
             "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
-            variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
+            "group-data-[side=right]:rotate-180", // This doesn't affect width, just for potential child transforms
+            // Width for collapsed 'icon' state, specific to variants
+            (variant === "floating" || variant === "inset") && collapsible === "icon"
+              ? "group-data-[state=collapsed]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
+              : "group-data-[state=collapsed]:group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
           )}
         />
         <div
@@ -240,8 +244,8 @@ const Sidebar = React.forwardRef<
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
             // Adjust the padding for floating and inset variants.
             variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+              ? "p-2 group-data-[state=collapsed]:group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]" // +2px for borders if any
+              : "group-data-[state=collapsed]:group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)] group-data-[side=left]:border-r group-data-[side=right]:border-l",
             className
           )}
           {...props}
@@ -322,8 +326,27 @@ const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-[padding-left,padding-right] duration-200 ease-linear",
+
+        // For 'sidebar' variant (fixed, overlaying sidebar)
+        "md:peer-data-[variant=sidebar]:peer-data-[side=left]:peer-data-[state=expanded]:pl-[var(--sidebar-width)]",
+        "md:peer-data-[variant=sidebar]:peer-data-[side=left]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[var(--sidebar-width-icon)]",
+        "md:peer-data-[variant=sidebar]:peer-data-[side=right]:peer-data-[state=expanded]:pr-[var(--sidebar-width)]",
+        "md:peer-data-[variant=sidebar]:peer-data-[side=right]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pr-[var(--sidebar-width-icon)]",
+
+        // For 'floating' variant (fixed, overlaying, sidebar has its own p-2)
+        // The placeholder div for 'floating' should dictate the space. The sidebar component's 'p-2' is internal to it.
+        // So, the padding should match the placeholder's width.
+        "md:peer-data-[variant=floating]:peer-data-[side=left]:peer-data-[state=expanded]:pl-[var(--sidebar-width)]", // Placeholder is w-[var(--sidebar-width)]
+        "md:peer-data-[variant=floating]:peer-data-[side=left]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]", // Placeholder is w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]
+        "md:peer-data-[variant=floating]:peer-data-[side=right]:peer-data-[state=expanded]:pr-[var(--sidebar-width)]",
+        "md:peer-data-[variant=floating]:peer-data-[side=right]:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+        
+        // For 'inset' variant, the placeholder div within the Sidebar's peer element handles the spacing.
+        // These classes are for additional styling of the inset content block itself.
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        // No explicit pl/pr or ml needed here for 'inset' if the placeholder in div.peer works correctly with flex layout.
         className
       )}
       {...props}
