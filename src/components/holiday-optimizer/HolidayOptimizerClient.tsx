@@ -68,24 +68,30 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     }
   }, [SLOVAKIA_COUNTRY_NAME, SLOVAKIA_COUNTRY_CODE]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (selectedYear !== initialDefaultYear) {
       fetchAndSetHolidays(selectedYear);
     } else {
-      setBankHolidays(initialBankHolidays); 
-      setIsFetchingHolidays(false); 
+      // We are on the initial default year
+      setBankHolidays(initialBankHolidays);
+      setIsFetchingHolidays(false); // Ensure this is false if using initial data
 
       if (initialBankHolidays.length === 0) {
+        // Only set error if not currently fetching and not loading (to avoid race conditions)
+        // and if no initial data was provided at all.
         if (!isFetchingHolidays && !isLoading) { 
              setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
-             setOptimizedPlans([]);
+             setOptimizedPlans([]); // Clear plans if data is missing
         }
       } else { 
+        // If we have initial data, and we are on the initial year, clear any previous errors
+        // that might have occurred from fetching other years, but only if not actively fetching/loading.
         if (error && !isFetchingHolidays && !isLoading) {
           setError(null);
         }
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays]);
 
 
@@ -220,7 +226,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
               {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !error && bankHolidays.length > 0 && (
                 <Alert className="border-primary/50 bg-primary/5 shadow-md rounded-lg">
                   <Info className="h-5 w-5 text-primary" />
-                  <AlertTitle className="text-primary font-semibold">Ready to Plan for {SLOVAKIA_COUNTRY_NAME}?</AlertTitle>
+                  <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
                     Click the "Optimize Holidays for {selectedYear}" button to generate your personalized holiday plans. 
                     The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
