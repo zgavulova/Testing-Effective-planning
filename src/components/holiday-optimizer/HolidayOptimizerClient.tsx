@@ -66,7 +66,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     } finally {
       setIsFetchingHolidays(false);
     }
-  }, [SLOVAKIA_COUNTRY_NAME, SLOVAKIA_COUNTRY_CODE]);
+  }, []); // Removed SLOVAKIA_COUNTRY_NAME and SLOVAKIA_COUNTRY_CODE as they are constants
 
  useEffect(() => {
     if (selectedYear !== initialDefaultYear) {
@@ -74,21 +74,17 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     } else {
       // We are on the initial default year
       setBankHolidays(initialBankHolidays);
-      setIsFetchingHolidays(false); // Ensure this is false if using initial data
+      setIsFetchingHolidays(false); 
 
-      if (initialBankHolidays.length === 0) {
-        if (!isFetchingHolidays && !isLoading) { 
-             setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
-             setOptimizedPlans([]); 
-        }
-      } else { 
-        if (error && !isFetchingHolidays && !isLoading) {
-          setError(null);
-        }
+      if (initialBankHolidays.length === 0 && !isFetchingHolidays && !isLoading) { 
+          setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
+          setOptimizedPlans([]); 
+      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays && !isLoading) {
+        // If initial holidays are now loaded and there was a previous error (e.g., from a different year), clear it.
+        setError(null);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays]);
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error, isFetchingHolidays]);
 
 
   const handleYearChange = (yearValue: string) => {
@@ -196,7 +192,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                       ) : (
                         <Wand2 className="mr-2 h-6 w-6" />
                       )}
-                      {isLoading ? 'Optimizing...' : `Optimize Holidays for ${selectedYear}`}
+                      {isLoading ? 'Planning...' : `Plan Holidays for ${selectedYear}`}
                     </Button>
                   </div>
                   {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
@@ -224,7 +220,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                   <Info className="h-5 w-5 text-primary" />
                   <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
-                    Click the "Optimize Holidays for {selectedYear}" button to generate your personalized holiday plans. 
+                    Click the "Plan Holidays for {selectedYear}" button to generate your personalized holiday plans. 
                     The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
                   </AlertDescription>
                 </Alert>
