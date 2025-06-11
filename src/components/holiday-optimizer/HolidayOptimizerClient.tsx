@@ -260,7 +260,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                     </h2>
                     <div className="text-muted-foreground text-md p-3 rounded-md bg-secondary/50 inline-block shadow">
                       <div className="flex items-center justify-center gap-2">
-                        <CheckSquare className="h-5 w-5 text-green-600" />
+                        <CheckSquare className="h-5 w-5 text-accent" />
                         <span>Used by suggestions: <strong>{totalDaysUsedBySuggestions}</strong> days</span>
                       </div>
                       <div className="flex items-center justify-center gap-2 mt-1">
