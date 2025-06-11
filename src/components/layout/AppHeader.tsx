@@ -14,7 +14,7 @@ export function AppHeader() {
       <div className="container mx-auto px-4 py-3 flex items-center">
         <SidebarTrigger className="mr-3 h-7 w-7 text-primary-foreground hover:bg-primary/80 focus-visible:ring-primary-foreground" />
         <BriefcaseBusiness className="h-8 w-8 mr-3" />
-        <h1 className="text-xl md:text-2xl font-bold font-headline">Effective Slovak Holiday planning</h1>
+        <h1 className="text-xl md:text-2xl font-bold font-headline">Effective Holiday planning</h1>
       </div>
     </header>
   );

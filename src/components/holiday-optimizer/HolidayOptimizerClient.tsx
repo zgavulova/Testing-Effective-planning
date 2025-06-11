@@ -66,7 +66,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     } finally {
       setIsFetchingHolidays(false);
     }
-  }, []); // Removed SLOVAKIA_COUNTRY_NAME and SLOVAKIA_COUNTRY_CODE as they are constants
+  }, []); 
 
  useEffect(() => {
     if (selectedYear !== initialDefaultYear) {
@@ -79,8 +79,8 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       if (initialBankHolidays.length === 0 && !isFetchingHolidays && !isLoading) { 
           setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
           setOptimizedPlans([]); 
-      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays && !isLoading) {
-        // If initial holidays are now loaded and there was a previous error (e.g., from a different year), clear it.
+      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays && !isLoading && selectedYear === initialDefaultYear) {
+        // If initial holidays are loaded and there was a previous error FOR THIS YEAR, clear it.
         setError(null);
       }
     }
@@ -241,7 +241,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
             </div>
           </main>
           <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-            Effective Slovak Holiday planning &copy; {currentDisplayYear}
+            Effective Holiday planning &copy; {currentDisplayYear}
           </footer>
         </div>
       </SidebarInset>
