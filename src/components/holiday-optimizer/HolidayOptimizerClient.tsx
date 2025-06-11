@@ -77,15 +77,11 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       setIsFetchingHolidays(false); // Ensure this is false if using initial data
 
       if (initialBankHolidays.length === 0) {
-        // Only set error if not currently fetching and not loading (to avoid race conditions)
-        // and if no initial data was provided at all.
         if (!isFetchingHolidays && !isLoading) { 
              setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
-             setOptimizedPlans([]); // Clear plans if data is missing
+             setOptimizedPlans([]); 
         }
       } else { 
-        // If we have initial data, and we are on the initial year, clear any previous errors
-        // that might have occurred from fetching other years, but only if not actively fetching/loading.
         if (error && !isFetchingHolidays && !isLoading) {
           setError(null);
         }
@@ -161,7 +157,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                 <CardHeader className="bg-primary/10 p-6">
                   <CardTitle className="font-headline text-3xl text-primary flex items-center">
                     <CalendarDays className="mr-3 h-8 w-8" />
-                    Plan Your Getaway
+                    Plan Your Ideal Getaway
                   </CardTitle>
                   <CardDescription className="text-base text-muted-foreground pt-2">
                     Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
