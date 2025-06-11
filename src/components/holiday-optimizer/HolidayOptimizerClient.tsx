@@ -13,13 +13,16 @@ import { fetchBankHolidaysForYear } from '@/lib/holidays';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { DateRange } from 'react-day-picker';
-import { UserPreferenceCalendar } from './UserPreferenceCalendar';
-import { Separator } from '@/components/ui/separator';
 import { parseISO } from 'date-fns';
+
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/layout/AppSidebar';
+import { AppHeader } from '@/components/layout/AppHeader';
 
 interface HolidayOptimizerClientProps {
   initialBankHolidays: BankHoliday[];
   initialDefaultYear: number;
+  currentDisplayYear: number;
 }
 
 const AVAILABLE_DAYS = 25;
@@ -28,9 +31,9 @@ const MAX_HOLIDAY_DURATION = 10;
 const SLOVAKIA_COUNTRY_CODE = 'SK';
 const SLOVAKIA_COUNTRY_NAME = 'Slovakia';
 
-const NUM_YEARS_IN_DROPDOWN = 6; // e.g., 2025 to 2030 if initialDefaultYear is 2025
+const NUM_YEARS_IN_DROPDOWN = 6;
 
-export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear }: HolidayOptimizerClientProps) {
+export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear, currentDisplayYear }: HolidayOptimizerClientProps) {
   const [selectedYear, setSelectedYear] = useState<number>(initialDefaultYear);
   const [bankHolidays, setBankHolidays] = useState<BankHoliday[]>(initialBankHolidays);
   const [optimizedPlans, setOptimizedPlans] = useState<OptimizedPlan[]>([]);
@@ -74,19 +77,17 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       if (initialBankHolidays.length === 0 && !isLoading) { 
         setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
         setOptimizedPlans([]);
-      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays) { // Added !isFetchingHolidays to avoid clearing error during fetch
+      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays) {
         setError(null);
       }
     }
   }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error, isFetchingHolidays]);
-
 
   const handleYearChange = (yearValue: string) => {
     const yearNumber = parseInt(yearValue, 10);
     if (yearNumber !== selectedYear) {
       setSelectedYear(yearNumber);
       setOptimizedPlans([]); 
-      // setUserSelectedRange(undefined); // Optionally reset user preference when year changes
     }
   };
 
@@ -130,120 +131,116 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     }
   };
 
-  const holidaysForCalendarView = bankHolidays.filter(bh => {
-    try {
-      return parseISO(bh.date).getFullYear() === selectedYear;
-    } catch {
-      return false; // Handle invalid date strings gracefully
-    }
-  });
-
-
   return (
-    <div className="space-y-8">
-      <Card className="bg-card shadow-lg rounded-xl overflow-hidden">
-        <CardHeader className="bg-primary/10 p-6">
-          <CardTitle className="font-headline text-3xl text-primary flex items-center">
-            <CalendarDays className="mr-3 h-8 w-8" />
-            Plan Your Slovak Getaway
-          </CardTitle>
-          <CardDescription className="text-base text-muted-foreground pt-2">
-            Let our AI assistant find the best holiday periods for you in Slovakia for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
-            You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll plan for holidays between <strong>{MIN_HOLIDAY_DURATION}</strong> and <strong>{MAX_HOLIDAY_DURATION}</strong> days long.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-6">
-          <div>
-            <Label htmlFor="year-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Base Year for Planning</Label>
-            <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
-              <SelectTrigger id="year-select" className="w-full md:w-72">
-                <SelectValue placeholder="Select year..." />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map(year => (
-                  <SelectItem key={year} value={String(year)}>
-                    {year} (Plans will cover {year} & {year + 1})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
-            </p>
-          </div>
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar
+        year={selectedYear}
+        allBankHolidays={bankHolidays} // Pass all holidays for the two-year span
+        selectedRange={userSelectedRange}
+        onRangeSelect={setUserSelectedRange}
+        countryName={SLOVAKIA_COUNTRY_NAME}
+      />
+      <SidebarInset>
+        <div className="flex flex-col min-h-screen bg-background">
+          <AppHeader />
+          <main className="flex-grow container mx-auto px-4 py-8">
+            <div className="space-y-8">
+              <Card className="bg-card shadow-lg rounded-xl overflow-hidden">
+                <CardHeader className="bg-primary/10 p-6">
+                  <CardTitle className="font-headline text-3xl text-primary flex items-center">
+                    <CalendarDays className="mr-3 h-8 w-8" />
+                    Plan Your Slovak Getaway
+                  </CardTitle>
+                  <CardDescription className="text-base text-muted-foreground pt-2">
+                    Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
+                    You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll plan for holidays between <strong>{MIN_HOLIDAY_DURATION}</strong> and <strong>{MAX_HOLIDAY_DURATION}</strong> days long.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div>
+                    <Label htmlFor="year-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Base Year for Planning</Label>
+                    <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
+                      <SelectTrigger id="year-select" className="w-full md:w-72">
+                        <SelectValue placeholder="Select year..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableYears.map(year => (
+                          <SelectItem key={year} value={String(year)}>
+                            {year} (Plans will cover {year} & {year + 1})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
+                    </p>
+                  </div>
 
-          <div className="flex justify-end">
-            <Button
-              onClick={handleOptimizeHolidays}
-              disabled={isLoading || isFetchingHolidays || bankHolidays.length === 0}
-              size="lg"
-              className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-3"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-              ) : (
-                <Wand2 className="mr-2 h-6 w-6" />
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleOptimizeHolidays}
+                      disabled={isLoading || isFetchingHolidays || bankHolidays.length === 0}
+                      size="lg"
+                      className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-3"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                      ) : (
+                        <Wand2 className="mr-2 h-6 w-6" />
+                      )}
+                      {isLoading ? 'Optimizing...' : `Optimize Holidays for ${selectedYear}`}
+                    </Button>
+                  </div>
+                  {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
+                    <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary">
+                        {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin text-primary"/> : <AlertTriangle className="h-5 w-5" />}
+                      <AlertTitle className={isFetchingHolidays ? "text-primary" : ""}>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
+                      <AlertDescription>
+                        {isFetchingHolidays ? `Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME} ${selectedYear}-${selectedYear+1}...` : `Bank holiday data for ${selectedYear}-${selectedYear+1} could not be loaded. Optimization is disabled until data is available.`}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+
+              {error && !isFetchingHolidays && (
+                <Alert variant="destructive" className="shadow-md rounded-lg">
+                  <AlertTriangle className="h-5 w-5" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-              {isLoading ? 'Optimizing...' : `Optimize Holidays for ${selectedYear}`}
-            </Button>
-          </div>
-           {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
-             <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary">
-                {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin text-primary"/> : <AlertTriangle className="h-5 w-5" />}
-               <AlertTitle className={isFetchingHolidays ? "text-primary" : ""}>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
-               <AlertDescription>
-                 {isFetchingHolidays ? `Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME} ${selectedYear}-${selectedYear+1}...` : `Bank holiday data for ${selectedYear}-${selectedYear+1} could not be loaded. Optimization is disabled until data is available.`}
-               </AlertDescription>
-             </Alert>
-           )}
-        </CardContent>
-      </Card>
 
-      {error && !isFetchingHolidays && (
-        <Alert variant="destructive" className="shadow-md rounded-lg">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+              {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !error && bankHolidays.length > 0 && (
+                <Alert className="border-primary/50 bg-primary/5 shadow-md rounded-lg">
+                  <Info className="h-5 w-5 text-primary" />
+                  <AlertTitle className="text-primary font-semibold">Ready to Plan for {SLOVAKIA_COUNTRY_NAME}?</AlertTitle>
+                  <AlertDescription>
+                    Click the "Optimize Holidays for {selectedYear}" button to generate your personalized holiday plans. 
+                    The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
+                  </AlertDescription>
+                </Alert>
+              )}
 
-      {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !error && bankHolidays.length > 0 && (
-         <Alert className="border-primary/50 bg-primary/5 shadow-md rounded-lg">
-           <Info className="h-5 w-5 text-primary" />
-           <AlertTitle className="text-primary font-semibold">Ready to Plan for Slovakia?</AlertTitle>
-           <AlertDescription>
-             Click the "Optimize Holidays for {selectedYear}" button to generate your personalized holiday plans. 
-             The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
-           </AlertDescription>
-         </Alert>
-      )}
-
-      {/* Year Calendar for Preferences */}
-      {!isFetchingHolidays && bankHolidays.length > 0 && (
-        <>
-          <Separator className="my-6 md:my-8" />
-          <UserPreferenceCalendar
-            year={selectedYear}
-            bankHolidays={holidaysForCalendarView}
-            selectedRange={userSelectedRange}
-            onRangeSelect={setUserSelectedRange}
-          />
-        </>
-      )}
-
-
-      {optimizedPlans.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-3xl font-bold font-headline mb-8 text-center text-primary">
-            Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {optimizedPlans.map((plan, index) => (
-              <OptimizedPlanCard key={index} plan={plan} allBankHolidays={bankHolidays} />
-            ))}
-          </div>
+              {optimizedPlans.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-3xl font-bold font-headline mb-8 text-center text-primary">
+                    Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {optimizedPlans.map((plan, index) => (
+                      <OptimizedPlanCard key={index} plan={plan} allBankHolidays={bankHolidays} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </main>
+          <footer className="py-6 text-center text-sm text-muted-foreground border-t">
+            Effective Slovak Holiday planning &copy; {currentDisplayYear}
+          </footer>
         </div>
-      )}
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
