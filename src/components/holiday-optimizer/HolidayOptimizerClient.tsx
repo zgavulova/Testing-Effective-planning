@@ -6,7 +6,7 @@ import type { BankHoliday, OptimizedPlan } from '@/types';
 import { optimizeHolidayPlan, OptimizeHolidayPlanInput } from '@/ai/flows/optimize-holiday-plan';
 import { Button } from '@/components/ui/button';
 import { OptimizedPlanCard } from './OptimizedPlanCard';
-import { Wand2, Loader2, AlertTriangle, Info, CalendarDays } from 'lucide-react';
+import { Wand2, Loader2, AlertTriangle, Info, CalendarDays, CheckSquare, ListTodo } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchBankHolidaysForYear } from '@/lib/holidays';
@@ -79,11 +79,10 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
             setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
             setOptimizedPlans([]);
         } else if (initialBankHolidays.length > 0 && error && selectedYear === initialDefaultYear && !isFetchingHolidays && !isLoading) {
-             // Clear error if initial holidays are loaded for the default year and there was a previous error for this year.
             setError(null);
         }
     }
-  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays]);
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, error, isFetchingHolidays, isLoading]);
 
 
   const handleYearChange = (yearValue: string) => {
@@ -96,7 +95,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
 
   const handleDurationChange = (durationValue: string) => {
     setSelectedHolidayDuration(parseInt(durationValue, 10));
-    setOptimizedPlans([]); // Clear previous plans when duration changes
+    setOptimizedPlans([]); 
   };
 
   const handleOptimizeHolidays = async () => {
@@ -139,6 +138,9 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     }
   };
 
+  const totalDaysUsedBySuggestions = optimizedPlans.reduce((sum, plan) => sum + plan.daysUsed, 0);
+  const remainingAllowance = AVAILABLE_DAYS - totalDaysUsedBySuggestions;
+
   return (
     <SidebarProvider defaultOpen={true}>
       <AppSidebar
@@ -159,9 +161,9 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                     <CalendarDays className="mr-3 h-8 w-8" />
                     Plan Your Ideal Getaway
                   </CardTitle>
-                  <CardDescription className="text-base text-muted-foreground pt-2">
-                    Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.
-                    You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll help you plan holidays that are <strong>{selectedHolidayDuration}</strong> days long.
+                  <CardDescription className="text-base text-muted-foreground pt-2 space-y-1">
+                    <p>Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.</p>
+                    <p>You have <strong>{AVAILABLE_DAYS}</strong> vacation days. We'll help you plan holidays that are <strong>{selectedHolidayDuration}</strong> days long.</p>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
@@ -250,11 +252,23 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                 </Alert>
               )}
 
-              {optimizedPlans.length > 0 && (
+              {optimizedPlans.length > 0 && !isLoading && !isFetchingHolidays && (
                 <div className="mt-8">
-                  <h2 className="text-3xl font-bold font-headline mb-8 text-center text-primary">
-                    Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
-                  </h2>
+                  <div className="text-center mb-6">
+                    <h2 className="text-3xl font-bold font-headline mb-2 text-primary">
+                      Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
+                    </h2>
+                    <div className="text-muted-foreground text-md p-3 rounded-md bg-secondary/50 inline-block shadow">
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckSquare className="h-5 w-5 text-green-600" />
+                        <span>Used by suggestions: <strong>{totalDaysUsedBySuggestions}</strong> days</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 mt-1">
+                        <ListTodo className="h-5 w-5 text-blue-600" />
+                        <span>Remaining allowance: <strong>{remainingAllowance}</strong> days (of {AVAILABLE_DAYS})</span>
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {optimizedPlans.map((plan, index) => (
                       <OptimizedPlanCard key={index} plan={plan} allBankHolidays={bankHolidays} />
@@ -272,4 +286,3 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     </SidebarProvider>
   );
 }
-
