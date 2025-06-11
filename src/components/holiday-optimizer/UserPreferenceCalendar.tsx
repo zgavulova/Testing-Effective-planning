@@ -1,19 +1,21 @@
 
 'use client';
 
+import * as React from 'react';
 import type { BankHoliday } from '@/types';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar as ShadcnCalendar } from '@/components/ui/calendar'; // Renamed to avoid conflict
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate } from 'date-fns';
+import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate, isSameDay } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
+import { useDayPicker, useDayRender } from 'react-day-picker'; // Imported hooks
 import { Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants, Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UserPreferenceCalendarProps {
   year: number;
-  allBankHolidays: BankHoliday[]; // Changed from bankHolidays to allBankHolidays
+  allBankHolidays: BankHoliday[];
   selectedRange: DateRange | undefined;
   onRangeSelect: (range: DateRange | undefined) => void;
 }
@@ -24,29 +26,90 @@ export function UserPreferenceCalendar({
   selectedRange,
   onRangeSelect,
 }: UserPreferenceCalendarProps) {
-  const [displayedMonth, setDisplayedMonth] = useState<Date>(() => startOfMonth(new Date(year, 0, 1)));
+  const [displayedMonth, setDisplayedMonth] = React.useState<Date>(() => startOfMonth(new Date(year, 0, 1)));
 
-  useEffect(() => {
+  React.useEffect(() => {
     setDisplayedMonth(startOfMonth(new Date(year, 0, 1)));
   }, [year]);
 
-  const bankHolidayDates = allBankHolidays.map(bh => parseISO(bh.date));
+  const bankHolidayMap = React.useMemo(() => {
+    const map = new Map<string, BankHoliday>();
+    allBankHolidays.forEach(holiday => {
+      // Ensure holiday.date is in 'yyyy-MM-dd' format for consistent lookup
+      // Assuming it's already in this format from the API.
+      map.set(holiday.date, holiday);
+    });
+    return map;
+  }, [allBankHolidays]);
+
+  // Custom Day component for react-day-picker
+  function CustomDay(props: { date: Date; displayMonth: Date }) {
+    const { date, displayMonth } = props;
+    const dayPicker = useDayPicker();
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const dayRender = useDayRender({ date, displayMonth, buttonRef });
+
+    const dateString = formatDate(date, 'yyyy-MM-dd');
+    const holiday = bankHolidayMap.get(dateString);
+
+    if (!dayRender.isButton && dayRender.divProps) { // Handle non-interactive days
+        return <td {...dayRender.props}><div {...dayRender.divProps} /></td>;
+    }
+    if (!dayRender.isButton && !dayRender.divProps) { // Fallback for days that are neither button nor have divProps
+        return <td {...dayRender.props} />;
+    }
+
+
+    const dayNumber = dayPicker.formatters.formatDay ? dayPicker.formatters.formatDay(date, dayPicker.locale) : formatDate(date, 'd');
+
+
+    if (holiday && dayRender.buttonProps) {
+      return (
+        <td {...dayRender.props}>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger asChild>
+              <button {...dayRender.buttonProps} ref={buttonRef}>
+                {dayNumber}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="p-1.5 text-xs bg-popover text-popover-foreground border shadow-md rounded-md">
+              <p>{holiday.localName}</p>
+            </TooltipContent>
+          </Tooltip>
+        </td>
+      );
+    }
+    
+    if (dayRender.buttonProps) {
+        return (
+            <td {...dayRender.props}>
+            <button {...dayRender.buttonProps} ref={buttonRef}>
+                {dayNumber}
+            </button>
+            </td>
+        );
+    }
+    // Fallback if not a button and no holiday (should ideally not be reached if isButton check is robust)
+    return <td {...dayRender.props}><div{...dayRender.divProps}>{dayNumber}</div></td>;
+  }
+
+
+  const bankHolidayDatesForModifier = allBankHolidays.map(bh => parseISO(bh.date));
 
   const modifiers = {
-    bankHoliday: bankHolidayDates,
+    bankHoliday: bankHolidayDatesForModifier,
     weekend: (date: Date) => isWeekend(date),
   };
 
   const modifiersClassNames = {
-    bankHoliday: 'bg-accent text-accent-foreground rounded-full font-semibold !w-7 !h-7', // Adjusted size
+    bankHoliday: 'bg-accent text-accent-foreground rounded-full font-semibold !w-7 !h-7',
     weekend: 'text-muted-foreground/60',
-    today: 'bg-secondary text-secondary-foreground rounded-full !font-bold ring-1 ring-ring !w-7 !h-7', // Adjusted size
+    today: 'bg-secondary text-secondary-foreground rounded-full !font-bold ring-1 ring-ring !w-7 !h-7',
   };
   
   const minCalendarDate = startOfMonth(new Date(year, 0, 1));
-  const maxCalendarDate = startOfMonth(new Date(year + 1, 11, 1)); // Last day of December of the next year
+  const maxCalendarDate = startOfMonth(new Date(year + 1, 11, 1)); 
 
-  // The last month that can start a 3-month view without exceeding maxCalendarDate
   const lastPossibleStartMonthForView = subMonths(maxCalendarDate, 2);
 
   const handlePreviousMonths = () => {
@@ -92,7 +155,7 @@ export function UserPreferenceCalendar({
           <p className="flex items-center"><span className="inline-block w-3 h-3 rounded-full bg-secondary mr-1 align-middle"></span>Today</p>
         </div>
         <div className="rounded-md border bg-background/50 p-1">
-          <Calendar
+          <ShadcnCalendar
             mode="range"
             selected={selectedRange}
             onSelect={onRangeSelect}
@@ -106,20 +169,20 @@ export function UserPreferenceCalendar({
             className="w-full"
             classNames={{
                 root: "w-full pb-1",
-                months: "flex flex-col gap-y-3", // Changed to flex-col for vertical stacking
-                month: "space-y-1 min-w-0 w-full bg-card p-1.5 rounded-md shadow-sm", // Added w-full
+                months: "flex flex-col gap-y-3", 
+                month: "space-y-1 min-w-0 w-full bg-card p-1.5 rounded-md shadow-sm", 
                 caption_label: "text-xs font-medium text-primary text-center",
                 caption: "flex justify-center items-center relative h-6 mb-1",
                 nav_button: "absolute top-0 h-6 w-6",
                 nav_button_previous: "left-0",
                 nav_button_next: "right-0",
                 head_row: "flex justify-around mb-1",
-                head_cell: "text-muted-foreground rounded-md w-7 h-7 font-normal text-[0.7rem] flex items-center justify-center", // Adjusted size
+                head_cell: "text-muted-foreground rounded-md w-7 h-7 font-normal text-[0.7rem] flex items-center justify-center",
                 row: "flex w-full mt-1 justify-around",
-                cell: "w-7 h-7 text-center text-[0.7rem] p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-full [&:has([aria-selected].day-outside)]:bg-primary/20 [&:has([aria-selected])]:bg-primary/80 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full focus-within:relative focus-within:z-20", // Adjusted size
+                cell: "w-7 h-7 text-center text-[0.7rem] p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-full [&:has([aria-selected].day-outside)]:bg-primary/20 [&:has([aria-selected])]:bg-primary/80 first:[&:has([aria-selected])]:rounded-l-full last:[&:has([aria-selected])]:rounded-r-full focus-within:relative focus-within:z-20", 
                 day: cn(
                     buttonVariants({ variant: "ghost" }),
-                    "w-7 h-7 p-0 font-normal aria-selected:opacity-100" // Adjusted size
+                    "w-7 h-7 p-0 font-normal aria-selected:opacity-100" 
                 ),
                 day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 rounded-full",
                 day_today: "bg-secondary text-secondary-foreground rounded-full",
@@ -128,7 +191,8 @@ export function UserPreferenceCalendar({
                 day_range_middle: "aria-selected:bg-primary/30 aria-selected:text-primary-foreground rounded-none",
             }}
             components={{
-              IconLeft: () => null, // Disable default nav buttons, using custom ones
+              Day: CustomDay, // Use our custom Day component
+              IconLeft: () => null, 
               IconRight: () => null,
             }}
           />
