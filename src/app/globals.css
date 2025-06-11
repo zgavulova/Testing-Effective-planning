@@ -21,7 +21,7 @@ body {
     --secondary-foreground: 220 10% 30%; /* Dark Gray for contrast */
     --muted: 220 10% 94%; /* Light Muted Gray */
     --muted-foreground: 220 10% 40%; /* Medium Dark Gray for contrast */
-    --accent: 16 100% 66%; /* Coral */
+    --accent: 340 90% 65%; /* Pink */
     --accent-foreground: 222 47% 11%; /* Dark Blue-Gray on Accent (maintains contrast) */
     --destructive: 0 84% 60%; /* Standard Red */
     --destructive-foreground: 0 0% 98%;
@@ -57,7 +57,7 @@ body {
     --secondary-foreground: 210 40% 98%;
     --muted: 222 37% 22%;
     --muted-foreground: 215 30% 70%; /* Lighter Muted Gray-Blue */
-    --accent: 16 100% 66%; /* Coral */
+    --accent: 340 90% 65%; /* Pink */
     --accent-foreground: 222 47% 11%; /* Dark text on accent */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
