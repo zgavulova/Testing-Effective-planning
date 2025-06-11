@@ -106,8 +106,8 @@ export function UserPreferenceCalendar({
             className="w-full"
             classNames={{
                 root: "w-full pb-1",
-                months: "flex flex-nowrap justify-around gap-x-1", 
-                month: "space-y-1 min-w-0 flex-1 bg-card p-1.5 rounded-md shadow-sm", 
+                months: "flex flex-col gap-y-3", // Changed to flex-col for vertical stacking
+                month: "space-y-1 min-w-0 w-full bg-card p-1.5 rounded-md shadow-sm", // Added w-full
                 caption_label: "text-xs font-medium text-primary text-center",
                 caption: "flex justify-center items-center relative h-6 mb-1",
                 nav_button: "absolute top-0 h-6 w-6",
@@ -137,3 +137,4 @@ export function UserPreferenceCalendar({
     </Card>
   );
 }
+
