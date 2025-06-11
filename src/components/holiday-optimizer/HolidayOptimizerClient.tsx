@@ -222,7 +222,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                     </Button>
                   </div>
                   {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
-                    <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary">
+                    <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary shadow-lg rounded-xl">
                         {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin text-primary"/> : <AlertTriangle className="h-5 w-5" />}
                       <AlertTitle className={isFetchingHolidays ? "text-primary" : ""}>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
                       <AlertDescription>
@@ -234,7 +234,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
               </Card>
 
               {error && !isFetchingHolidays && (
-                <Alert variant="destructive" className="shadow-md rounded-lg">
+                <Alert variant="destructive" className="shadow-lg rounded-xl">
                   <AlertTriangle className="h-5 w-5" />
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
@@ -242,7 +242,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
               )}
 
               {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !error && bankHolidays.length > 0 && (
-                <Alert className="border-primary/50 bg-primary/5 shadow-md rounded-lg">
+                <Alert className="border-primary/50 bg-primary/5 shadow-lg rounded-xl">
                   <Info className="h-5 w-5 text-primary" />
                   <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
