@@ -5,7 +5,7 @@ import * as React from 'react';
 import type { BankHoliday } from '@/types';
 import { Calendar as ShadcnCalendar } from '@/components/ui/calendar'; // Renamed to avoid conflict
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate } from 'date-fns';
+import { parseISO, isWeekend, addMonths, subMonths, startOfMonth, isSameMonth, format as formatDate, getYear as getFullYear, getMonth } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { useDayPicker, useDayRender } from 'react-day-picker'; // Imported hooks
 import { Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -26,10 +26,21 @@ export function UserPreferenceCalendar({
   selectedRange,
   onRangeSelect,
 }: UserPreferenceCalendarProps) {
-  const [displayedMonth, setDisplayedMonth] = React.useState<Date>(() => startOfMonth(new Date(year, 0, 1)));
+  const getInitialDisplayMonth = (planningYear: number): Date => {
+    const today = new Date();
+    const actualCurrentYear = getFullYear(today);
+    if (planningYear === actualCurrentYear) {
+      // Start from the current month of the current year
+      return startOfMonth(new Date(planningYear, getMonth(today), 1));
+    }
+    // Default to January of the planning year
+    return startOfMonth(new Date(planningYear, 0, 1));
+  };
+
+  const [displayedMonth, setDisplayedMonth] = React.useState<Date>(() => getInitialDisplayMonth(year));
 
   React.useEffect(() => {
-    setDisplayedMonth(startOfMonth(new Date(year, 0, 1)));
+    setDisplayedMonth(getInitialDisplayMonth(year));
   }, [year]);
 
   const bankHolidayMap = React.useMemo(() => {
@@ -49,32 +60,33 @@ export function UserPreferenceCalendar({
 
   const modifiersClassNames = {
     bankHoliday: 'bg-accent text-accent-foreground font-semibold',
-    weekend: 'text-muted-foreground/60',
+    weekend: 'text-muted-foreground/60 opacity-80',
     today: 'bg-secondary text-secondary-foreground !font-bold ring-1 ring-ring',
   };
+
 
   function CustomDay(props: { date: Date; displayMonth: Date }) {
     const { date, displayMonth } = props;
     const dayPicker = useDayPicker();
     const buttonRef = React.useRef<HTMLButtonElement>(null);
     const dayRender = useDayRender(date, displayMonth, buttonRef);
-
-    const dayNumber = dayPicker.formatters.formatDay ? dayPicker.formatters.formatDay(date, dayPicker.locale) : formatDate(date, 'd');
-
+  
     if (dayRender.isHidden) {
       return <></>;
     }
-
-    if (!dayRender.isButton) {
+  
+    if (!dayRender.isButton || !dayRender.buttonProps) {
       return <div {...dayRender.divProps} />;
     }
-
-    // At this point, dayRender.isButton is true, and dayRender.buttonProps is defined.
+    
+    const dayNumber = dayPicker.formatters.formatDay ? dayPicker.formatters.formatDay(date, dayPicker.locale) : formatDate(date, 'd');
     const dateString = formatDate(date, 'yyyy-MM-dd');
     const holiday = bankHolidayMap.get(dateString);
-    let finalButtonClassName = dayRender.buttonProps.className; 
-
+  
+    let finalButtonClassName = dayRender.buttonProps.className;
+  
     if (holiday) {
+      // Ensure holiday style is applied correctly
       finalButtonClassName = cn(finalButtonClassName, modifiersClassNames.bankHoliday);
       return (
         <TooltipProvider delayDuration={150}>
@@ -95,7 +107,8 @@ export function UserPreferenceCalendar({
         </TooltipProvider>
       );
     }
-
+  
+    // Default rendering for non-holiday buttons
     return (
       <button
         {...dayRender.buttonProps}
