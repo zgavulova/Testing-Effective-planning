@@ -180,6 +180,7 @@ export function UserPreferenceCalendar({
             modifiers={modifiers}
             modifiersClassNames={modifiersClassNames}
             className="w-full"
+            weekStartsOn={1} // Start week on Monday
             classNames={{
                 root: "w-full pb-1",
                 months: "flex flex-col gap-y-3", 
