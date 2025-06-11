@@ -29,6 +29,7 @@ const OptimizeHolidayPlanOutputSchema = z.object({
       daysUsed: z.number().describe('Number of vacation days used in this plan.'),
       totalDaysOff: z.number().describe('Total number of days off (including weekends and holidays).'),
       description: z.string().describe('Description of the optimized plan, explaining the rationale.'),
+      note: z.string().optional().describe('A short, engaging note or suggestion for the type of trip this plan is ideal for (e.g., "Perfect for a summer getaway", "Ideal for a cozy winter break").'),
     })
   ).describe('Array of optimized holiday plans.'),
 });
@@ -52,8 +53,9 @@ const prompt = ai.definePrompt({
   Holiday Duration: Minimum {{minHolidayDuration}} days, Maximum {{maxHolidayDuration}} days
 
   Consider weekends and bank holidays when creating the plans. Aim to create plans that include these days to extend the holiday period with fewer vacation days.
+  For each optimized plan, please also provide a concise and appealing 'note' (around 5-10 words). This note should suggest the type of trip the plan is best suited for, or a key highlight. Examples: 'Ideal for a spring city break', 'Perfect for exploring nature trails', 'Enjoy the autumn colors', 'Great for a long weekend ski trip'.
 
-  Return an array of optimized plans, each including the start date, end date, number of vacation days used, the total number of days off, and a description of the plan.
+  Return an array of optimized plans, each including the start date, end date, number of vacation days used, the total number of days off, a description of the plan, and the generated note.
   `,
 });
 

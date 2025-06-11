@@ -4,7 +4,7 @@
 import type { OptimizedPlan, BankHoliday } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp, Share2 } from 'lucide-react';
+import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp, Share2, Lightbulb } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, addDays, eachDayOfInterval, isWeekend,isSameDay } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -35,7 +35,7 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
     const text = encodeURIComponent(`Holiday: ${plan.description.substring(0,50)}...`);
     // For all-day events, Google Calendar expects the end date to be exclusive.
     const dates = `${format(startDate, dateFormat)}/${format(addDays(endDate, 1), dateFormat)}`;
-    const details = encodeURIComponent(`Optimized holiday plan. Days used: ${plan.daysUsed}. Total days off: ${plan.totalDaysOff}.\n${plan.description}`);
+    const details = encodeURIComponent(`Optimized holiday plan. Days used: ${plan.daysUsed}. Total days off: ${plan.totalDaysOff}.\n${plan.description}${plan.note ? `\nNote: ${plan.note}` : ''}`);
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}`;
   };
 
@@ -44,7 +44,7 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
 Description: ${plan.description}
 Dates: ${format(startDate, 'dd MMM yyyy')} - ${format(endDate, 'dd MMM yyyy')}
 Vacation Days Used: ${plan.daysUsed}
-Total Days Off: ${plan.totalDaysOff}`;
+Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
 
     if (navigator.share) {
       try {
@@ -58,9 +58,6 @@ Total Days Off: ${plan.totalDaysOff}`;
           description: "The holiday plan was successfully shared.",
         });
       } catch (error) {
-        // This catch block is usually for actual errors or if the user explicitly cancels (AbortError).
-        // Some browsers might not throw AbortError for user cancellation, so behavior can vary.
-        // We'll attempt to copy to clipboard as a fallback if sharing doesn't complete.
         console.warn('Web Share API failed or was cancelled, attempting clipboard copy:', error);
         try {
           await navigator.clipboard.writeText(planSummary);
@@ -130,9 +127,17 @@ Total Days Off: ${plan.totalDaysOff}`;
           <CalendarDays className="mr-2.5 h-7 w-7 text-primary" />
           {format(startDate, 'dd MMM yyyy')} - {format(endDate, 'dd MMM yyyy')}
         </CardTitle>
-        <CardDescription className="flex items-start pt-1 text-sm">
-          <Info className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-          {plan.description}
+        <CardDescription className="flex flex-col pt-1 text-sm">
+          <div className="flex items-start">
+            <Info className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <span>{plan.description}</span>
+          </div>
+          {plan.note && (
+            <div className="mt-2 text-sm text-muted-foreground flex items-start">
+              <Lightbulb className="mr-2 h-4 w-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <span className="italic">{plan.note}</span>
+            </div>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-5 space-y-5 flex-grow">
@@ -217,4 +222,3 @@ Total Days Off: ${plan.totalDaysOff}`;
     </Card>
   );
 }
-

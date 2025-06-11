@@ -17,4 +17,5 @@ export interface OptimizedPlan {
   daysUsed: number;
   totalDaysOff: number;
   description: string;
+  note?: string; // Added new optional note field
 }
