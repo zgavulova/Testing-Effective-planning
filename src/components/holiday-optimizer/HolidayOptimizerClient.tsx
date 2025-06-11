@@ -12,6 +12,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { fetchBankHolidaysForYear } from '@/lib/holidays';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { DateRange } from 'react-day-picker';
+import { UserPreferenceCalendar } from './UserPreferenceCalendar';
+import { Separator } from '@/components/ui/separator';
+import { parseISO } from 'date-fns';
 
 interface HolidayOptimizerClientProps {
   initialBankHolidays: BankHoliday[];
@@ -33,6 +37,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingHolidays, setIsFetchingHolidays] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userSelectedRange, setUserSelectedRange] = useState<DateRange | undefined>();
 
   const availableYears = Array.from({ length: NUM_YEARS_IN_DROPDOWN }, (_, i) => initialDefaultYear + i);
 
@@ -40,7 +45,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     setIsFetchingHolidays(true);
     setError(null);
     setOptimizedPlans([]);
-    setBankHolidays([]); // Clear current holidays before fetching new ones
+    setBankHolidays([]); 
 
     try {
       const holidaysCurrent = await fetchBankHolidaysForYear(yearToFetch, SLOVAKIA_COUNTRY_CODE);
@@ -64,29 +69,24 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     if (selectedYear !== initialDefaultYear) {
       fetchAndSetHolidays(selectedYear);
     } else {
-      // Selected year is the default year, use initial data.
       setBankHolidays(initialBankHolidays);
-      setIsFetchingHolidays(false); // Ensure fetching is false
-      // Clear plans if they were for a different year, otherwise keep them if they were for initialDefaultYear
-      // For simplicity, we can clear plans when switching back to default year if they are not from initial load.
-      // This is tricky; handleOptimizeHolidays will generate new ones correctly.
-      // Let's ensure error state is correct:
+      setIsFetchingHolidays(false); 
       if (initialBankHolidays.length === 0 && !isLoading) { 
         setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
         setOptimizedPlans([]);
-      } else if (initialBankHolidays.length > 0 && error) {
-        // If we have initial holidays and there was an error from a previous fetch, clear it
+      } else if (initialBankHolidays.length > 0 && error && !isFetchingHolidays) { // Added !isFetchingHolidays to avoid clearing error during fetch
         setError(null);
       }
     }
-  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error]);
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, isLoading, error, isFetchingHolidays]);
 
 
   const handleYearChange = (yearValue: string) => {
     const yearNumber = parseInt(yearValue, 10);
     if (yearNumber !== selectedYear) {
       setSelectedYear(yearNumber);
-      setOptimizedPlans([]); // Clear plans when year changes
+      setOptimizedPlans([]); 
+      // setUserSelectedRange(undefined); // Optionally reset user preference when year changes
     }
   };
 
@@ -129,6 +129,15 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       setIsLoading(false);
     }
   };
+
+  const holidaysForCalendarView = bankHolidays.filter(bh => {
+    try {
+      return parseISO(bh.date).getFullYear() === selectedYear;
+    } catch {
+      return false; // Handle invalid date strings gracefully
+    }
+  });
+
 
   return (
     <div className="space-y-8">
@@ -209,8 +218,22 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
          </Alert>
       )}
 
+      {/* Year Calendar for Preferences */}
+      {!isFetchingHolidays && bankHolidays.length > 0 && (
+        <>
+          <Separator className="my-6 md:my-8" />
+          <UserPreferenceCalendar
+            year={selectedYear}
+            bankHolidays={holidaysForCalendarView}
+            selectedRange={userSelectedRange}
+            onRangeSelect={setUserSelectedRange}
+          />
+        </>
+      )}
+
+
       {optimizedPlans.length > 0 && (
-        <div>
+        <div className="mt-8">
           <h2 className="text-3xl font-bold font-headline mb-8 text-center text-primary">
             Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
           </h2>
