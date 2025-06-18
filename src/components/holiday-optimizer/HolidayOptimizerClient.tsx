@@ -162,7 +162,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                 <CardHeader className="bg-primary/10 p-6">
                   <CardTitle className="font-headline text-3xl text-primary flex items-center">
                     <CalendarDays className="mr-3 h-8 w-8" />
-                    Plan Your Ideal Getaway
+                    Plan your ideal holiday
                   </CardTitle>
                   <CardDescription className="text-base text-muted-foreground pt-2 space-y-1">
                     <p>Let our AI assistant find the best holiday periods for you in {SLOVAKIA_COUNTRY_NAME} for {selectedYear} and {selectedYear + 1}. We maximize your time off by leveraging bank holidays and weekends.</p>
