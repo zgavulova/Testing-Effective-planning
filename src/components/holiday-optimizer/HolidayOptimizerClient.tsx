@@ -268,7 +268,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                         <span>Used by suggestions: <strong>{totalDaysUsedBySuggestions}</strong> days</span>
                       </div>
                       <div className="flex items-center justify-center gap-2 mt-1">
-                        <ListTodo className="h-5 w-5 text-blue-600" />
+                        <ListTodo className="h-5 w-5 text-primary" />
                         <span>Remaining allowance: <strong>{remainingAllowance}</strong> days (of {AVAILABLE_DAYS})</span>
                       </div>
                     </div>
