@@ -19,3 +19,13 @@ export interface OptimizedPlan {
   description: string;
   note?: string; // Added new optional note field
 }
+
+export interface ManualPlanDetails {
+  startDate: Date;
+  endDate: Date;
+  totalDays: number;
+  vacationDays: number;
+  weekendDays: number;
+  bankHolidays: number;
+  bankHolidayNames: string[];
+}
