@@ -9,39 +9,39 @@ body {
 
 @layer base {
   :root {
-    --background: 210 20% 98%; /* Soft Off-White */
+    --background: 220 13% 97%; /* Very Light Cool Gray */
     --foreground: 224 71% 4%; /* Very Dark Blue */
     --card: 0 0% 100%; /* White */
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 195 53% 45%; /* Muted Teal */
-    --primary-foreground: 210 40% 98%; /* Light Blue for contrast on primary */
-    --secondary: 210 40% 96.1%; /* Light Grayish Blue */
+    --primary: 225 73% 47%; /* Deep Indigo */
+    --primary-foreground: 210 20% 98%; /* Soft Off-White */
+    --secondary: 220 14% 91%; /* Light Cool Gray */
     --secondary-foreground: 222.2 47.4% 11.2%; /* Dark Blue-Gray for contrast */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%; /* Muted Gray */
-    --accent: 25 85% 70%; /* Fresh Coral */
-    --accent-foreground: 24 30% 15%; /* Dark Brown for contrast on accent */
+    --muted: 220 14% 91%;
+    --muted-foreground: 215.4 16.3% 56.9%; /* Muted Gray */
+    --accent: 262 82% 58%; /* Vibrant Violet */
+    --accent-foreground: 210 20% 98%; /* Soft Off-White */
     --destructive: 0 84.2% 60.2%; /* Standard Red */
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%; /* Light Gray Border */
-    --input: 214.3 31.8% 91.4%;
-    --ring: 195 53% 55%; /* Lighter Teal for rings */
+    --border: 220 13% 91%; /* Light Gray Border */
+    --input: 220 13% 94%;
+    --ring: 225 73% 57%; /* Lighter Indigo for rings */
     --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--accent));
-    --chart-3: 45 100% 60%; /* Sunny Yellow */
-    --chart-4: 340 90% 70%; /* Lighter Pink */
-    --chart-5: 300 75% 75%; /* Lighter Bright Pink/Magenta */
+    --chart-3: 45 95% 55%; /* Sunny Yellow */
+    --chart-4: 10 80% 65%; /* Salmon Orange */
+    --chart-5: 190 75% 55%; /* Bright Cyan */
     --radius: 0.5rem;
-    --sidebar-background: 210 20% 96%; /* Slightly darker off-white for sidebar */
+    --sidebar-background: 220 13% 95%;
     --sidebar-foreground: 224 71% 4%;
-    --sidebar-primary: 195 53% 40%; /* Slightly darker primary for sidebar */
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 94%;
-    --sidebar-accent-foreground: 195 53% 25%;
-    --sidebar-border: 214.3 31.8% 88%;
-    --sidebar-ring: 195 53% 55%;
+    --sidebar-primary: 225 73% 42%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-accent: 220 14% 91%;
+    --sidebar-accent-foreground: 225 73% 30%;
+    --sidebar-border: 220 13% 88%;
+    --sidebar-ring: 225 73% 57%;
   }
 
   .dark {
@@ -51,32 +51,32 @@ body {
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 15%;
     --popover-foreground: 210 40% 98%;
-    --primary: 195 53% 55%; /* Lighter Teal for dark mode */
-    --primary-foreground: 224 71% 4%; /* Dark text on primary */
+    --primary: 225 73% 67%; /* Lighter Indigo for dark mode */
+    --primary-foreground: 225 73% 10%; /* Dark text on primary */
     --secondary: 222 37% 25%; /* Medium Dark Blue-Gray */
     --secondary-foreground: 210 40% 98%;
     --muted: 222 37% 22%;
     --muted-foreground: 215 30% 70%; /* Lighter Muted Gray-Blue */
-    --accent: 25 85% 75%; /* Lighter Coral for dark mode */
-    --accent-foreground: 24 30% 15%; /* Dark text on accent */
+    --accent: 262 82% 68%; /* Lighter Violet for dark mode */
+    --accent-foreground: 262 82% 15%; /* Dark text on accent */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 222 37% 30%; /* Medium Dark Blue-Gray Border */
     --input: 222 37% 28%; /* Darker Input */
-    --ring: 195 53% 65%; /* Lighter ring for dark mode */
+    --ring: 225 73% 77%; /* Lighter ring for dark mode */
     --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--accent));
     --chart-3: 45 90% 60%;
-    --chart-4: 25 80% 70%;
-    --chart-5: 300 70% 75%;
+    --chart-4: 10 75% 68%;
+    --chart-5: 190 70% 60%;
     --sidebar-background: 222 47% 9%; /* Darker for sidebar */
     --sidebar-foreground: 210 40% 96%; /* Lighter for sidebar text */
-    --sidebar-primary: 195 53% 60%;
-    --sidebar-primary-foreground: 224 71% 4%;
+    --sidebar-primary: 225 73% 67%;
+    --sidebar-primary-foreground: 225 73% 10%;
     --sidebar-accent: 222 37% 20%;
-    --sidebar-accent-foreground: 174 70% 50%;
+    --sidebar-accent-foreground: 225 73% 77%;
     --sidebar-border: 222 37% 25%;
-    --sidebar-ring: 195 53% 65%;
+    --sidebar-ring: 225 73% 77%;
   }
 }
 
