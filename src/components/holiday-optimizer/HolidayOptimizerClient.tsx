@@ -215,7 +215,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                       onClick={handleOptimizeHolidays}
                       disabled={isLoading || isFetchingHolidays || bankHolidays.length === 0}
                       size="lg"
-                      className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-3"
+                      className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3"
                     >
                       {isLoading ? (
                         <Loader2 className="mr-2 h-6 w-6 animate-spin" />
