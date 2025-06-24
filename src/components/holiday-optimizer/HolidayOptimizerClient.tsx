@@ -262,7 +262,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                     <h2 className="text-3xl font-bold font-headline mb-2 text-primary">
                       Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
                     </h2>
-                    <div className="text-muted-foreground text-md p-3 rounded-md bg-secondary/50 inline-block shadow">
+                    <div className="text-muted-foreground text-base p-3 rounded-md bg-secondary/50 inline-block shadow">
                       <div className="flex items-center justify-center gap-2">
                         <CheckSquare className="h-5 w-5 text-accent" />
                         <span>Used by suggestions: <strong>{totalDaysUsedBySuggestions}</strong> days</span>
@@ -290,4 +290,3 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     </SidebarProvider>
   );
 }
-
