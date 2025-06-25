@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { BankHoliday, OptimizedPlan } from '@/types';
+import type { BankHoliday, OptimizedPlan, ManualPlanDetails } from '@/types';
 import { optimizeHolidayPlan, OptimizeHolidayPlanInput } from '@/ai/flows/optimize-holiday-plan';
 import { Button } from '@/components/ui/button';
 import { OptimizedPlanCard } from './OptimizedPlanCard';
+import { ManualPlanCard } from './ManualPlanCard';
 import { Wand2, Loader2, AlertTriangle, Info, CalendarDays, CheckSquare, ListTodo } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { DateRange } from 'react-day-picker';
 import { parseISO } from 'date-fns';
+import { calculateDateRangeDetails } from '@/lib/date-utils';
 
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/AppSidebar';
@@ -29,7 +31,7 @@ const AVAILABLE_DAYS = 25;
 const SLOVAKIA_COUNTRY_CODE = 'SK';
 const SLOVAKIA_COUNTRY_NAME = 'Slovakia';
 
-const NUM_YEARS_IN_DROPDOWN = 6; // Show current year + next 5 years
+const NUM_YEARS_IN_DROPDOWN = 6;
 const DURATION_OPTIONS = [3, 5, 7, 10, 14];
 const DEFAULT_DURATION = 5;
 
@@ -42,6 +44,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
   const [isFetchingHolidays, setIsFetchingHolidays] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userSelectedRange, setUserSelectedRange] = useState<DateRange | undefined>();
+  const [manualPlanDetails, setManualPlanDetails] = useState<ManualPlanDetails | null>(null);
 
   const availableYears = Array.from({ length: NUM_YEARS_IN_DROPDOWN }, (_, i) => new Date().getFullYear() + i);
 
@@ -84,6 +87,15 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     }
   }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, error, isFetchingHolidays, isLoading]);
 
+
+  useEffect(() => {
+    if (userSelectedRange?.from && userSelectedRange?.to && bankHolidays.length > 0) {
+      const details = calculateDateRangeDetails(userSelectedRange, bankHolidays);
+      setManualPlanDetails(details);
+    } else {
+      setManualPlanDetails(null);
+    }
+  }, [userSelectedRange, bankHolidays]);
 
   const handleYearChange = (yearValue: string) => {
     const yearNumber = parseInt(yearValue, 10);
@@ -215,7 +227,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                       onClick={handleOptimizeHolidays}
                       disabled={isLoading || isFetchingHolidays || bankHolidays.length === 0}
                       size="lg"
-                      className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground text-lg py-3"
+                      className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-3"
                     >
                       {isLoading ? (
                         <Loader2 className="mr-2 h-6 w-6 animate-spin" />
@@ -245,13 +257,20 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                 </Alert>
               )}
 
-              {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !error && bankHolidays.length > 0 && (
+              {manualPlanDetails && (
+                <ManualPlanCard 
+                  details={manualPlanDetails}
+                  onClear={() => setUserSelectedRange(undefined)}
+                />
+              )}
+
+              {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !manualPlanDetails && !error && bankHolidays.length > 0 && (
                 <Alert className="border-primary/50 bg-primary/5 shadow-lg rounded-xl">
                   <Info className="h-5 w-5 text-primary" />
                   <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
                     Select your desired year and holiday duration, then click the "Plan Holidays for {selectedYear}" button to generate your personalized holiday plans. 
-                    The AI will consider bank holidays for {selectedYear} and {selectedYear + 1}.
+                    Or, select a date range on the calendar to start a manual plan.
                   </AlertDescription>
                 </Alert>
               )}
@@ -260,15 +279,15 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                 <div className="mt-8">
                   <div className="text-center mb-6">
                     <h2 className="text-3xl font-bold font-headline mb-2 text-primary">
-                      Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
+                      AI Optimized Holiday Plans for {SLOVAKIA_COUNTRY_NAME} ({selectedYear} - {selectedYear + 1})
                     </h2>
-                    <div className="text-muted-foreground text-md p-3 rounded-md bg-secondary/50 inline-block shadow">
+                    <div className="text-muted-foreground text-base p-3 rounded-md bg-secondary/50 inline-block shadow">
                       <div className="flex items-center justify-center gap-2">
                         <CheckSquare className="h-5 w-5 text-accent" />
                         <span>Used by suggestions: <strong>{totalDaysUsedBySuggestions}</strong> days</span>
                       </div>
                       <div className="flex items-center justify-center gap-2 mt-1">
-                        <ListTodo className="h-5 w-5 text-blue-600" />
+                        <ListTodo className="h-5 w-5 text-primary" />
                         <span>Remaining allowance: <strong>{remainingAllowance}</strong> days (of {AVAILABLE_DAYS})</span>
                       </div>
                     </div>
@@ -290,4 +309,3 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     </SidebarProvider>
   );
 }
-
