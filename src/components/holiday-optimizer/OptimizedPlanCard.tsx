@@ -134,7 +134,7 @@ Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
           </div>
           {plan.note && (
             <div className="mt-2 text-sm flex items-start">
-              <Lightbulb className="mr-2 h-4 w-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+              <Lightbulb className="mr-2 h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
               <span className="italic font-bold text-accent">{plan.note}</span>
             </div>
           )}
