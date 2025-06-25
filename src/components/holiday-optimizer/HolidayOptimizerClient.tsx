@@ -238,9 +238,9 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                     </Button>
                   </div>
                   {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
-                    <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary shadow-lg rounded-xl">
-                        {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin text-primary"/> : <AlertTriangle className="h-5 w-5" />}
-                      <AlertTitle className={isFetchingHolidays ? "text-primary" : ""}>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
+                    <Alert variant={isFetchingHolidays ? "info" : "destructive"} className="mt-6 shadow-lg rounded-xl">
+                        {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin"/> : <AlertTriangle className="h-5 w-5" />}
+                      <AlertTitle>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
                       <AlertDescription>
                         {isFetchingHolidays ? `Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME} ${selectedYear}-${selectedYear+1}...` : `Bank holiday data for ${selectedYear}-${selectedYear+1} could not be loaded. Optimization is disabled until data is available.`}
                       </AlertDescription>
@@ -265,9 +265,9 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
               )}
 
               {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !manualPlanDetails && !error && bankHolidays.length > 0 && (
-                <Alert className="border-primary/50 bg-primary/5 shadow-lg rounded-xl">
-                  <Info className="h-5 w-5 text-primary" />
-                  <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
+                <Alert variant="info" className="shadow-lg rounded-xl">
+                  <Info className="h-5 w-5" />
+                  <AlertTitle className="font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
                     Select your desired year and holiday duration, then click the "Plan Holidays for {selectedYear}" button to generate your personalized holiday plans. 
                     Or, select a date range on the calendar to start a manual plan.
