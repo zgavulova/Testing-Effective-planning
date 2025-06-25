@@ -52,7 +52,7 @@ Total Days Off: ${totalDays}
           </div>
            <div className="flex items-center justify-between text-base">
             <span className="text-muted-foreground flex items-center"><CalendarDays className="mr-2 h-5 w-5"/>Total Time Off:</span>
-            <Badge variant="default" className="font-bold text-lg bg-accent text-accent-foreground px-3 py-1.5">{totalDays} days</Badge>
+            <Badge variant="accent" className="font-bold text-lg px-3 py-1.5">{totalDays} days</Badge>
           </div>
         </div>
         
