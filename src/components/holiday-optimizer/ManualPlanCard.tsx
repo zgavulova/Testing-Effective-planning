@@ -58,12 +58,12 @@ Total Days Off: ${totalDays}
         
         <div className="text-sm space-y-2">
             <div className="flex items-center gap-2">
-                <Sun className="h-4 w-4 text-yellow-500" />
+                <Sun className="h-4 w-4 text-accent" />
                 <span className="font-semibold">{weekendDays}</span>
                 <span>Weekend Days</span>
             </div>
             <div className="flex items-center gap-2">
-                <Moon className="h-4 w-4 text-indigo-400" />
+                <Moon className="h-4 w-4 text-primary" />
                 <span className="font-semibold">{bankHolidays}</span>
                 <span>Bank Holidays</span>
             </div>
