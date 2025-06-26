@@ -34,15 +34,7 @@ export async function fetchBankHolidaysForYear(year: number, countryCode: string
       }
       return []; // Return empty array on failure to allow graceful degradation
     }
-    let holidays: BankHoliday[] = await response.json();
-
-    // Filter out September 1st if the country is Slovakia (SK)
-    if (countryCode.toUpperCase() === 'SK') {
-      holidays = holidays.filter(holiday => {
-        // Holiday date format is YYYY-MM-DD. We check for MM-DD part.
-        return holiday.date.substring(5) !== '09-01';
-      });
-    }
+    const holidays: BankHoliday[] = await response.json();
 
     return holidays;
   } catch (error) {
