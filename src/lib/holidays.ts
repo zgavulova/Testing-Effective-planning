@@ -1,3 +1,4 @@
+
 import type { BankHoliday } from '@/types';
 
 const API_BASE_URL = 'https://date.nager.at/api/v3';
@@ -35,6 +36,11 @@ export async function fetchBankHolidaysForYear(year: number, countryCode: string
       return []; // Return empty array on failure to allow graceful degradation
     }
     const holidays: BankHoliday[] = await response.json();
+
+    // As requested, remove Constitution Day (September 1st) for Slovakia for years 2025 and onwards.
+    if (countryCode.toUpperCase() === 'SK' && year >= 2025) {
+      return holidays.filter(holiday => !holiday.date.endsWith('-09-01'));
+    }
 
     return holidays;
   } catch (error) {
