@@ -1,4 +1,4 @@
-import { eachDayOfInterval, isWeekend, isSameDay, differenceInCalendarDays } from 'date-fns';
+import { eachDayOfInterval, isWeekend, isSameDay, differenceInCalendarDays, parseISO, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import type { BankHoliday, ManualPlanDetails } from '@/types';
 
@@ -10,7 +10,7 @@ export function calculateDateRangeDetails(range: DateRange, allBankHolidays: Ban
   const interval = { start: range.from, end: range.to };
   const allDaysInInterval = eachDayOfInterval(interval);
 
-  const bankHolidayDatesInYear = allBankHolidays.map(h => new Date(h.date + 'T00:00:00')); // Avoid timezone issues
+  const bankHolidayDatesInYear = allBankHolidays.map(h => parseISO(h.date));
 
   let weekendDays = 0;
   let vacationDays = 0;
@@ -20,7 +20,7 @@ export function calculateDateRangeDetails(range: DateRange, allBankHolidays: Ban
     const isHoliday = bankHolidayDatesInYear.some(bhDate => isSameDay(day, bhDate));
     if (isHoliday) {
       // Find the holiday details to add to the list
-      const holidayDetail = allBankHolidays.find(h => h.date === day.toISOString().split('T')[0]);
+      const holidayDetail = allBankHolidays.find(h => h.date === format(day, 'yyyy-MM-dd'));
       if(holidayDetail && !planBankHolidays.some(h => h.date === holidayDetail.date)) {
         planBankHolidays.push(holidayDetail);
       }

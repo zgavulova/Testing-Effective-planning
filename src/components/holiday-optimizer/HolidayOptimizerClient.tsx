@@ -60,7 +60,7 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
       const allFetchedHolidays = [...holidaysCurrent, ...holidaysNext];
 
       if (allFetchedHolidays.length === 0) {
-        setError(`No holiday data found for ${SLOVAKIA_COUNTRY_NAME} for ${yearToFetch}-${yearToFetch + 1}. Optimization might not be effective.`);
+        setError(`No holiday data found for ${SLOVAKIA_COUNTRY_NAME} for ${yearToFetch}-${yearToFetch + 1}. The API may not have data available for years this far in the future.`);
       }
       setBankHolidays(allFetchedHolidays);
     } catch (e) {
@@ -70,22 +70,24 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
     } finally {
       setIsFetchingHolidays(false);
     }
-  }, []); 
+  }, [setBankHolidays, setError, setOptimizedPlans]);
 
+  // This effect handles fetching holiday data when the selected year changes.
   useEffect(() => {
-    if (selectedYear !== initialDefaultYear || initialBankHolidays.length === 0) {
-        fetchAndSetHolidays(selectedYear);
-    } else {
-        setBankHolidays(initialBankHolidays);
-        setIsFetchingHolidays(false);
-        if (initialBankHolidays.length === 0 && !isFetchingHolidays && !isLoading) {
-            setError(`Initial bank holiday data for ${SLOVAKIA_COUNTRY_NAME} for ${initialDefaultYear}-${initialDefaultYear + 1} could not be loaded. Please try selecting a different year or refresh.`);
-            setOptimizedPlans([]);
-        } else if (initialBankHolidays.length > 0 && error && selectedYear === initialDefaultYear && !isFetchingHolidays && !isLoading) {
-            setError(null);
-        }
+    // If the selected year is the one we initially loaded on the server,
+    // and we actually got data, just use that and don't re-fetch.
+    if (selectedYear === initialDefaultYear && initialBankHolidays.length > 0) {
+      setBankHolidays(initialBankHolidays);
+      setError(null); // Clear any previous errors if we are going back to the initial year
+      return;
     }
-  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays, error, isFetchingHolidays, isLoading]);
+
+    // For any other year, or if the initial server-side fetch failed, fetch from the API.
+    fetchAndSetHolidays(selectedYear);
+    
+  // We only want this effect to re-run when the user explicitly changes the year.
+  // fetchAndSetHolidays is memoized by useCallback.
+  }, [selectedYear, initialDefaultYear, initialBankHolidays, fetchAndSetHolidays]);
 
 
   useEffect(() => {
@@ -237,12 +239,12 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
                       {isLoading ? 'Planning...' : `Plan Holidays for ${selectedYear}`}
                     </Button>
                   </div>
-                  {(isFetchingHolidays || (bankHolidays.length === 0 && !isLoading && !error && initialBankHolidays.length === 0 && selectedYear === initialDefaultYear) ) && (
-                    <Alert variant={isFetchingHolidays ? "default" : "destructive"} className="mt-6 bg-secondary/50 border-secondary shadow-lg rounded-xl">
-                        {isFetchingHolidays ? <Loader2 className="h-5 w-5 animate-spin text-primary"/> : <AlertTriangle className="h-5 w-5" />}
-                      <AlertTitle className={isFetchingHolidays ? "text-primary" : ""}>{isFetchingHolidays ? "Loading Holiday Data" : "Missing Data"}</AlertTitle>
+                  {isFetchingHolidays && (
+                    <Alert variant="info" className="mt-6 shadow-lg rounded-xl">
+                      <Loader2 className="h-5 w-5 animate-spin"/>
+                      <AlertTitle>Loading Holiday Data</AlertTitle>
                       <AlertDescription>
-                        {isFetchingHolidays ? `Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME} ${selectedYear}-${selectedYear+1}...` : `Bank holiday data for ${selectedYear}-${selectedYear+1} could not be loaded. Optimization is disabled until data is available.`}
+                        {`Fetching bank holidays for ${SLOVAKIA_COUNTRY_NAME} ${selectedYear}-${selectedYear+1}...`}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -265,9 +267,9 @@ export function HolidayOptimizerClient({ initialBankHolidays, initialDefaultYear
               )}
 
               {!isLoading && !isFetchingHolidays && optimizedPlans.length === 0 && !manualPlanDetails && !error && bankHolidays.length > 0 && (
-                <Alert className="border-primary/50 bg-primary/5 shadow-lg rounded-xl">
-                  <Info className="h-5 w-5 text-primary" />
-                  <AlertTitle className="text-primary font-semibold">Ready to plan?</AlertTitle>
+                <Alert variant="info" className="shadow-lg rounded-xl">
+                  <Info className="h-5 w-5" />
+                  <AlertTitle className="font-semibold">Ready to plan?</AlertTitle>
                   <AlertDescription>
                     Select your desired year and holiday duration, then click the "Plan Holidays for {selectedYear}" button to generate your personalized holiday plans. 
                     Or, select a date range on the calendar to start a manual plan.

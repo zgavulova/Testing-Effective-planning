@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { OptimizedPlan, BankHoliday } from '@/types';
@@ -105,7 +104,7 @@ Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
     weekend: 'text-muted-foreground/70 opacity-80',
     vacationDay: 'bg-primary text-primary-foreground rounded-md font-bold',
     selectedPeriod: 'bg-primary/10 rounded-none',
-    today: 'bg-blue-200 text-blue-800 rounded-full !font-bold ring-2 ring-primary'
+    today: 'bg-secondary text-secondary-foreground rounded-full !font-bold ring-2 ring-primary'
   };
 
   const startMonth = startDate.getMonth();
