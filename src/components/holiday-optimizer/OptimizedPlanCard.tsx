@@ -1,14 +1,16 @@
+
 'use client';
 
 import type { OptimizedPlan, BankHoliday } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp, Share2, Lightbulb } from 'lucide-react';
+import { CalendarDays, CheckCircle, ExternalLink, Info, Briefcase, TrendingUp, Share2, Lightbulb, Mail, MessageSquare, Copy } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, addDays, eachDayOfInterval, isWeekend,isSameDay } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface OptimizedPlanCardProps {
   plan: OptimizedPlan;
@@ -28,6 +30,15 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
   const vacationDaysTaken = planDays.filter(day =>
     !isWeekend(day) && !planBankHolidayDates.some(bhDate => isSameDay(day, bhDate))
   );
+  
+  const planSummary = `Check out this holiday plan!\n\nDescription: ${plan.description}\nDates: ${format(startDate, 'dd MMM yyyy')} - ${format(endDate, 'dd MMM yyyy')}\nVacation Days Used: ${plan.daysUsed}\nTotal Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
+  const planSummaryHtml = `
+    <p>Check out this holiday plan!</p>
+    <p><b>Description:</b> ${plan.description}<br>
+    <b>Dates:</b> ${format(startDate, 'dd MMM yyyy')} - ${format(endDate, 'dd MMM yyyy')}<br>
+    <b>Vacation Days Used:</b> ${plan.daysUsed}<br>
+    <b>Total Days Off:</b> ${plan.totalDaysOff}${plan.note ? `<br><b>Note:</b> <i>${plan.note}</i>` : ''}</p>
+  `.replace(/\n/g, '').replace(/ +/g, ' ').trim();
 
   const generateGoogleCalendarLink = () => {
     const dateFormat = "yyyyMMdd";
@@ -37,49 +48,26 @@ export function OptimizedPlanCard({ plan, allBankHolidays }: OptimizedPlanCardPr
     const details = encodeURIComponent(`Optimized holiday plan. Days used: ${plan.daysUsed}. Total days off: ${plan.totalDaysOff}.\n${plan.description}${plan.note ? `\nNote: ${plan.note}` : ''}`);
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}`;
   };
+  
+  const generateGmailLink = () => {
+    const subject = encodeURIComponent(`Holiday Plan: ${plan.description.substring(0, 30)}...`);
+    const body = encodeURIComponent(planSummary);
+    return `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+  };
 
-  const handleSharePlan = async () => {
-    const planSummary = `Check out this holiday plan!
-Description: ${plan.description}
-Dates: ${format(startDate, 'dd MMM yyyy')} - ${format(endDate, 'dd MMM yyyy')}
-Vacation Days Used: ${plan.daysUsed}
-Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Slovak Holiday Plan',
-          text: planSummary,
-          // url: window.location.href, // Optional: if you want to share a link to the app
-        });
-        toast({
-          title: "Plan Shared!",
-          description: "The holiday plan was successfully shared.",
-        });
-      } catch (error) {
-        console.warn('Web Share API failed or was cancelled, attempting clipboard copy:', error);
-        try {
-          await navigator.clipboard.writeText(planSummary);
-          toast({
-            title: "Sharing Incomplete, Plan Copied!",
-            description: "Could not share directly, but the plan is copied to your clipboard.",
-          });
-        } catch (copyError) {
-          console.error('Failed to copy plan after sharing failed: ', copyError);
-          toast({
-            title: "Error",
-            description: "Could not share or copy the plan. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
-    } else {
-      // navigator.share is not available, fallback to clipboard
-      try {
+  const generateGoogleChatLink = () => {
+    const text = encodeURIComponent(planSummary);
+    // This is a simplified approach. A real implementation might use webhooks for specific spaces.
+    // This URL will open a user's Google Chat, but won't pre-populate a specific conversation.
+    return `https://chat.google.com/`
+  }
+  
+  const handleCopyToClipboard = async () => {
+     try {
         await navigator.clipboard.writeText(planSummary);
         toast({
           title: "Plan Copied!",
-          description: "Sharing via apps isn't available in your browser. Plan copied to clipboard.",
+          description: "The holiday plan has been copied to your clipboard.",
         });
       } catch (err) {
         console.error('Failed to copy plan: ', err);
@@ -89,8 +77,8 @@ Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
           variant: "destructive",
         });
       }
-    }
   };
+
 
   const modifiers = {
     bankHoliday: planBankHolidayDates,
@@ -201,13 +189,39 @@ Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
         </div>
       </CardContent>
       <CardFooter className="p-5 bg-primary/5 border-t space-x-3">
-        <Button
-          onClick={handleSharePlan}
-          variant="outline"
-          className="w-full text-primary border-primary/50 hover:bg-primary/10 hover:text-primary text-base py-2.5"
-        >
-          <Share2 className="mr-2 h-5 w-5" /> Share Plan
-        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full text-primary border-primary/50 hover:bg-primary/10 hover:text-primary text-base py-2.5">
+                    <Share2 className="mr-2 h-5 w-5" /> Share Plan
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                    <a href={generateGmailLink()} target="_blank" rel="noopener noreferrer">
+                        <Mail className="mr-2 h-4 w-4" />
+                        <span>Share via Email (Gmail)</span>
+                    </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                     <a href={generateGoogleChatLink()} target="_blank" rel="noopener noreferrer" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleCopyToClipboard();
+                          window.open(generateGoogleChatLink(), '_blank', 'noopener,noreferrer');
+                          toast({ title: 'Plan Copied for Chat', description: 'The plan has been copied. You can now paste it into Google Chat.' });
+                        }}
+                     >
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        <span>Share to Google Chat</span>
+                     </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyToClipboard}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    <span>Copy to Clipboard</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+
         <Button
           asChild
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-2.5"
@@ -221,3 +235,5 @@ Total Days Off: ${plan.totalDaysOff}${plan.note ? `\nNote: ${plan.note}` : ''}`;
     </Card>
   );
 }
+
+    
