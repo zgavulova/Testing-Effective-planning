@@ -9,39 +9,39 @@ body {
 
 @layer base {
   :root {
-    --background: 222 47% 11%; /* Dark Blue-Gray */
-    --foreground: 210 40% 98%; /* Very Light Blue */
-    --card: 222 47% 15%; /* Slightly Lighter Dark Blue-Gray */
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 15%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 262 82% 68%; /* Vibrant Violet */
-    --primary-foreground: 210 20% 98%; /* Soft Off-White */
-    --secondary: 222 37% 25%; /* Medium Dark Blue-Gray */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 222 37% 22%;
-    --muted-foreground: 215 30% 70%; /* Lighter Muted Gray-Blue */
-    --accent: 340 82% 58%; /* Vibrant Pink */
-    --accent-foreground: 210 20% 98%; /* Soft Off-White */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 222 37% 30%; /* Medium Dark Blue-Gray Border */
-    --input: 222 37% 28%; /* Darker Input */
-    --ring: 262 82% 75%; /* Lighter violet for rings */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 262 82% 58%; /* Violet */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 340 82% 58%; /* Pink */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
     --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--accent));
-    --chart-3: 45 90% 60%;
-    --chart-4: 10 75% 68%;
-    --chart-5: 190 70% 60%;
-    --radius: 0.5rem;
-    --sidebar-background: 222 47% 9%; /* Darker for sidebar */
-    --sidebar-foreground: 210 40% 96%; /* Lighter for sidebar text */
-    --sidebar-primary: 262 82% 68%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 222 37% 20%;
-    --sidebar-accent-foreground: 262 82% 78%; /* a lighter violet for hover */
-    --sidebar-border: 222 37% 25%;
-    --sidebar-ring: 262 82% 75%;
+    --chart-3: 45 90% 55%;
+    --chart-4: 10 80% 55%;
+    --chart-5: 190 80% 55%;
+    --sidebar-background: 220 13% 96%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 262 82% 58%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 92%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 222.2 84% 4.9%;
   }
 
   .dark {
@@ -74,7 +74,7 @@ body {
     --sidebar-primary: 262 82% 68%;
     --sidebar-primary-foreground: 210 20% 98%;
     --sidebar-accent: 222 37% 20%;
-    --sidebar-accent-foreground: 262 82% 78%;
+    --sidebar-accent-foreground: 262 82% 78%; /* a lighter violet for hover */
     --sidebar-border: 222 37% 25%;
     --sidebar-ring: 262 82% 75%;
   }
